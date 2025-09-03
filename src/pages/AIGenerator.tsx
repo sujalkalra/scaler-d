@@ -151,11 +151,11 @@ export default function AIGenerator() {
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold">Generated System Design</h3>
                 <div className="flex gap-2">
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" onClick={() => { if (generated) { navigator.clipboard.writeText(generated.architecture); } }}>
                     <Copy className="w-4 h-4 mr-1" />
                     Copy
                   </Button>
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" onClick={() => { if (generated) { const blob = new Blob([generated.architecture], { type: 'text/plain' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `${generated.company}-design.txt`; a.click(); URL.revokeObjectURL(url); } }}>
                     <Download className="w-4 h-4 mr-1" />
                     Export
                   </Button>
@@ -187,7 +187,7 @@ export default function AIGenerator() {
                   </div>
                 </div>
 
-                <Button variant="hero" className="w-full">
+                <Button variant="hero" className="w-full" onClick={() => setGenerated(null)}>
                   Generate Another Design
                 </Button>
               </div>

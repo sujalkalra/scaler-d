@@ -19,6 +19,8 @@ export default function Auth() {
     fullName: ""
   })
   const { toast } = useToast()
+  const [verificationSent, setVerificationSent] = useState(false)
+  const [resendLoading, setResendLoading] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -50,15 +52,26 @@ export default function Auth() {
         if (error) throw error
         toast({
           title: "Account created!",
-          description: "Please check your email for verification.",
+          description: "Verification email sent. Please check your inbox.",
         })
+        setVerificationSent(true)
       }
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      })
+      const msg = error?.message || "Something went wrong"
+      if (typeof msg === 'string' && msg.toLowerCase().includes('email not confirmed')) {
+        setVerificationSent(true)
+        toast({
+          title: "Email not confirmed",
+          description: "We can resend the verification email below.",
+          variant: "destructive",
+        })
+      } else {
+        toast({
+          title: "Error",
+          description: msg,
+          variant: "destructive",
+        })
+      }
     } finally {
       setLoading(false)
     }
@@ -69,6 +82,23 @@ export default function Auth() {
       ...formData,
       [e.target.name]: e.target.value,
     })
+  }
+
+  const handleResend = async () => {
+    if (!formData.email) return
+    setResendLoading(true)
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: formData.email,
+      })
+      if (error) throw error
+      toast({ title: 'Verification sent', description: `Email sent to ${formData.email}` })
+    } catch (err: any) {
+      toast({ title: 'Error', description: err.message, variant: 'destructive' })
+    } finally {
+      setResendLoading(false)
+    }
   }
 
   return (
@@ -194,6 +224,15 @@ export default function Auth() {
                 )}
               </Button>
             </form>
+
+            {verificationSent && (
+              <div className="p-3 rounded-lg border border-border bg-muted/40 text-sm flex items-center justify-between">
+                <span>Didn’t get the email? Check spam or resend the verification.</span>
+                <Button type="button" size="sm" variant="outline" onClick={handleResend} disabled={resendLoading}>
+                  {resendLoading ? 'Sending…' : 'Resend email'}
+                </Button>
+              </div>
+            )}
 
             <div className="relative">
               <div className="absolute inset-0 flex items-center">

@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { AppLayout } from "@/components/layout/AppLayout"
 import designPadIllustration from "@/assets/design-pad-illustration.jpg"
+import { useToast } from "@/hooks/use-toast"
 
 const designComponents = [
   { id: 1, name: "Load Balancer", icon: Layers, color: "bg-primary" },
@@ -39,6 +40,7 @@ const savedDesigns = [
 
 export default function Practice() {
   const [selectedComponent, setSelectedComponent] = useState<number | null>(null)
+  const { toast } = useToast()
 
   return (
     <AppLayout>
@@ -97,7 +99,7 @@ export default function Practice() {
                       {design.components} components • {design.lastModified}
                     </p>
                   </div>
-                  <Button variant="ghost" size="sm">
+                  <Button variant="ghost" size="sm" onClick={() => toast({ title: 'Open design', description: design.name })}>
                     <Play className="w-4 h-4" />
                   </Button>
                 </div>
@@ -117,19 +119,19 @@ export default function Practice() {
           </div>
           
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={() => toast({ title: 'Saved', description: 'Design saved (demo)' })}>
               <Save className="w-4 h-4 mr-1" />
               Save
             </Button>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={() => toast({ title: 'Exported', description: 'Exported as image (demo)' })}>
               <Download className="w-4 h-4 mr-1" />
               Export
             </Button>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={() => { setSelectedComponent(null); toast({ title: 'Cleared', description: 'Canvas cleared (demo)' }) }}>
               <Trash2 className="w-4 h-4 mr-1" />
               Clear
             </Button>
-            <Button variant="hero" size="sm">
+            <Button variant="hero" size="sm" onClick={() => toast({ title: 'Share link copied', description: 'Link copied to clipboard (demo)' })}>
               Share Design
             </Button>
           </div>
@@ -162,14 +164,14 @@ export default function Practice() {
                 Drag components from the sidebar to start creating your architecture diagram. 
                 Connect components with arrows and add annotations to explain your design decisions.
               </p>
-              <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <Button variant="hero">
-                  Start New Design
-                </Button>
-                <Button variant="outline">
-                  Load Template
-                </Button>
-              </div>
+                <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                  <Button variant="hero" onClick={() => toast({ title: 'New design', description: 'Starting a new design (demo)' })}>
+                    Start New Design
+                  </Button>
+                  <Button variant="outline" onClick={() => toast({ title: 'Template loaded', description: 'Loaded template (demo)' })}>
+                    Load Template
+                  </Button>
+                </div>
             </div>
           </div>
           </div>

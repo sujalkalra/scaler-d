@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { AppLayout } from "@/components/layout/AppLayout"
 import heroImage from "@/assets/hero-system-design.jpg"
+import { Link } from "react-router-dom"
 
 const stats = [
   { label: "Articles", value: "500+", icon: BookOpen },
@@ -43,12 +44,14 @@ const Index = () => {
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-4">
-                  <Button variant="hero" size="hero" className="group">
-                    Start Learning
-                    <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+                  <Button asChild variant="hero" size="hero" className="group">
+                    <Link to="/practice">
+                      Start Learning
+                      <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+                    </Link>
                   </Button>
-                  <Button variant="outline" size="hero">
-                    Browse Articles
+                  <Button asChild variant="outline" size="hero">
+                    <Link to="/articles">Browse Articles</Link>
                   </Button>
                 </div>
 
@@ -167,19 +170,19 @@ const Index = () => {
 
         {/* CTA Section */}
         <section className="py-20 bg-gradient-hero relative overflow-hidden">
-          <div className="absolute inset-0 bg-black/20"></div>
+          <div className="absolute inset-0 bg-foreground/20"></div>
           <div className="container mx-auto px-6 max-w-4xl relative z-10">
-            <div className="text-center text-white">
+            <div className="text-center text-primary-foreground">
               <h2 className="text-4xl font-bold mb-6">Ready to Level Up Your System Design Skills?</h2>
               <p className="text-xl opacity-90 mb-8 max-w-2xl mx-auto">
                 Join thousands of engineers who are mastering system design with our comprehensive platform.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button variant="secondary" size="hero">
-                  Start Free Trial
+                <Button asChild variant="secondary" size="hero">
+                  <Link to="/auth">Start Free Trial</Link>
                 </Button>
-                <Button variant="outline" size="hero" className="text-white border-white hover:bg-white hover:text-primary">
-                  View Pricing
+                <Button asChild variant="contrast" size="hero">
+                  <Link to="/articles">View Pricing</Link>
                 </Button>
               </div>
             </div>

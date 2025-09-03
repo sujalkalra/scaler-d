@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
 import { AppLayout } from "@/components/layout/AppLayout"
+import { useToast } from "@/hooks/use-toast"
 
 const featuredArticles = [
   {
@@ -81,6 +82,7 @@ const companyFilters = ["Netflix", "YouTube", "Spotify", "Instagram", "Uber", "A
 export default function Articles() {
   const [selectedFilter, setSelectedFilter] = useState("all")
   const [selectedCompany, setSelectedCompany] = useState<string | null>(null)
+  const { toast } = useToast()
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty.toLowerCase()) {
@@ -191,20 +193,43 @@ export default function Articles() {
               {/* Actions */}
               <div className="flex items-center justify-between pt-4 border-t border-border">
                 <div className="flex items-center gap-4">
-                  <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="text-muted-foreground hover:text-foreground"
+                    onClick={() => toast({ title: "Liked", description: `You liked: ${article.title}` })}
+                  >
                     <Heart className="w-4 h-4 mr-1" />
                     {article.likes}
                   </Button>
-                  <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="text-muted-foreground hover:text-foreground"
+                    onClick={() => toast({ title: "Comments", description: "Comments feature coming soon" })}
+                  >
                     <MessageCircle className="w-4 h-4 mr-1" />
                     {article.comments}
                   </Button>
-                  <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="text-muted-foreground hover:text-foreground"
+                    onClick={() => {
+                      navigator.clipboard.writeText(window.location.href)
+                      toast({ title: "Link copied", description: "Article link copied to clipboard" })
+                    }}
+                  >
                     <Share2 className="w-4 h-4 mr-1" />
                     Share
                   </Button>
                 </div>
-                <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-muted-foreground hover:text-foreground"
+                  onClick={() => toast({ title: "Saved", description: "Article saved to bookmarks" })}
+                >
                   <Bookmark className="w-4 h-4" />
                 </Button>
               </div>
@@ -215,7 +240,7 @@ export default function Articles() {
 
       {/* Load More */}
       <div className="flex justify-center mt-12">
-        <Button variant="outline" size="lg">
+        <Button variant="outline" size="lg" onClick={() => toast({ title: "Loading...", description: "Fetching more articles (demo)" })}>
           Load More Articles
         </Button>
         </div>

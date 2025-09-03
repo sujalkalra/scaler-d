@@ -3,7 +3,7 @@ import { Play, Save, Download, Trash2, Layers, Database, Server, Globe, Zap, Arr
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { AppLayout } from "@/components/layout/AppLayout"
-import designPadIllustration from "@/assets/design-pad-illustration.jpg"
+
 import { useToast } from "@/hooks/use-toast"
 
 const designComponents = [
@@ -101,22 +101,27 @@ export default function Practice() {
 
   const handleCanvasDrop = (e: React.DragEvent) => {
     e.preventDefault()
-    if (!selectedComponent || !canvasRef.current) return
+    if (!canvasRef.current) return
+
+    const data = e.dataTransfer.getData('application/x-component-type')
+    const typeId = data ? parseInt(data, 10) : selectedComponent
+    if (!typeId) return
 
     const rect = canvasRef.current.getBoundingClientRect()
     const x = e.clientX - rect.left
     const y = e.clientY - rect.top
 
     const newComponent: PlacedComponent = {
-      id: `${selectedComponent}-${Date.now()}-${Math.random()}`,
-      type: selectedComponent,
+      id: `${typeId}-${Date.now()}-${Math.random()}`,
+      type: typeId,
       x: Math.max(0, x - 40),
       y: Math.max(0, y - 40)
     }
 
     setPlacedComponents(prev => [...prev, newComponent])
     setIsDesigning(true)
-    toast({ title: 'Component Added', description: `${designComponents.find(c => c.id === selectedComponent)?.name} added to canvas` })
+    const compName = designComponents.find(c => c.id === typeId)?.name
+    toast({ title: 'Component Added', description: `${compName ?? 'Component'} added to canvas` })
   }
 
   const handleCanvasDragOver = (e: React.DragEvent) => {
@@ -149,25 +154,31 @@ export default function Practice() {
               System Components
             </h3>
             <div className="space-y-2">
-              {designComponents.map((component) => (
-                <div
-                  key={component.id}
-                  className={`
-                    p-3 rounded-lg border-2 border-dashed border-border cursor-move
-                    hover:border-primary hover:bg-primary-light transition-all duration-200
-                    ${selectedComponent === component.id ? 'border-primary bg-primary-light' : ''}
-                  `}
-                  onClick={() => setSelectedComponent(component.id)}
-                  draggable
-                >
-                  <div className="flex items-center gap-3">
-                    <div className={`w-8 h-8 ${component.color} rounded-lg flex items-center justify-center`}>
-                      <component.icon className="w-4 h-4 text-white" />
+              {designComponents.map((component) => {
+                const Icon = component.icon
+                return (
+                  <div
+                    key={component.id}
+                    className={`
+                      p-3 rounded-lg border-2 border-dashed border-border cursor-move
+                      hover:border-primary hover:bg-primary-light transition-all duration-200
+                      ${selectedComponent === component.id ? 'border-primary bg-primary-light' : ''}
+                    `}
+                    onClick={() => setSelectedComponent(component.id)}
+                    draggable
+                    onDragStart={(e) => {
+                      e.dataTransfer.setData('application/x-component-type', String(component.id))
+                    }}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={`w-8 h-8 ${component.color} rounded-lg flex items-center justify-center`}>
+                        <Icon className="w-4 h-4 text-white" />
+                      </div>
+                      <span className="font-medium text-sm">{component.name}</span>
                     </div>
-                    <span className="font-medium text-sm">{component.name}</span>
                   </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           </div>
         </div>
@@ -248,6 +259,7 @@ export default function Practice() {
           {placedComponents.map((component) => {
             const componentData = designComponents.find(c => c.id === component.type)
             if (!componentData) return null
+            const Icon = componentData.icon
             
             return (
               <div
@@ -256,7 +268,7 @@ export default function Practice() {
                 style={{ left: component.x, top: component.y }}
               >
                 <div className={`w-20 h-20 ${componentData.color} rounded-lg flex flex-col items-center justify-center shadow-lg border-2 border-white/20`}>
-                  <componentData.icon className="w-6 h-6 text-white mb-1" />
+                  <Icon className="w-6 h-6 text-white mb-1" />
                   <span className="text-xs text-white font-medium text-center px-1">{componentData.name}</span>
                 </div>
               </div>
@@ -293,11 +305,6 @@ export default function Practice() {
                   </div>
                 ) : (
                   <div>
-                    <img 
-                      src={designPadIllustration} 
-                      alt="Design Pad Illustration" 
-                      className="w-full max-w-sm mx-auto mb-6 rounded-xl shadow-soft"
-                    />
                     <h3 className="text-xl font-semibold mb-2">Start Building Your System Design</h3>
                     <p className="text-muted-foreground mb-6">
                       Drag components from the sidebar to start creating your architecture diagram. 

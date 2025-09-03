@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { Layout } from "@/components/layout/Layout"
+import { AppLayout } from "@/components/layout/AppLayout"
 
 const popularPrompts = [
   "Design a scalable video streaming platform like Netflix",
@@ -64,7 +64,7 @@ export default function AIGenerator() {
   }
 
   return (
-    <Layout>
+    <AppLayout>
       <div className="container mx-auto px-6 py-8 max-w-6xl">
       {/* Header */}
       <div className="text-center mb-12">
@@ -243,6 +243,6 @@ export default function AIGenerator() {
           </Card>
         </div>
       </div>
-    </Layout>
+    </AppLayout>
   )
 }

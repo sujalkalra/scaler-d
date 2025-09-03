@@ -1,7 +1,7 @@
 import { ArrowRight, BookOpen, PenTool, Zap, TrendingUp, Users, Star } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { Layout } from "@/components/layout/Layout"
+import { AppLayout } from "@/components/layout/AppLayout"
 import heroImage from "@/assets/hero-system-design.jpg"
 
 const stats = [
@@ -17,7 +17,7 @@ const featuredCompanies = [
 
 const Index = () => {
   return (
-    <Layout>
+    <AppLayout>
       <div className="min-h-screen">
         {/* Hero Section */}
         <section className="relative overflow-hidden bg-gradient-to-br from-background via-primary-light/20 to-secondary-light/20">
@@ -186,7 +186,7 @@ const Index = () => {
           </div>
         </section>
       </div>
-    </Layout>
+    </AppLayout>
   );
 };
 

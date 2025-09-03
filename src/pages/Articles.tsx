@@ -3,7 +3,7 @@ import { Heart, MessageCircle, Share2, Bookmark, Clock, User } from "lucide-reac
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
-import { Layout } from "@/components/layout/Layout"
+import { AppLayout } from "@/components/layout/AppLayout"
 
 const featuredArticles = [
   {
@@ -93,7 +93,7 @@ export default function Articles() {
   }
 
   return (
-    <Layout>
+    <AppLayout>
       <div className="container mx-auto px-6 py-8 max-w-7xl">
       {/* Header */}
       <div className="mb-8">
@@ -220,6 +220,6 @@ export default function Articles() {
         </Button>
         </div>
       </div>
-    </Layout>
+    </AppLayout>
   )
 }

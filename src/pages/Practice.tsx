@@ -2,7 +2,7 @@ import { useState } from "react"
 import { Play, Save, Download, Trash2, Layers, Database, Server, Globe, Zap } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { Layout } from "@/components/layout/Layout"
+import { AppLayout } from "@/components/layout/AppLayout"
 import designPadIllustration from "@/assets/design-pad-illustration.jpg"
 
 const designComponents = [
@@ -41,7 +41,7 @@ export default function Practice() {
   const [selectedComponent, setSelectedComponent] = useState<number | null>(null)
 
   return (
-    <Layout>
+    <AppLayout>
       <div className="h-full flex">
       {/* Sidebar - Component Library */}
       <div className="w-80 border-r border-border bg-card flex flex-col">
@@ -175,7 +175,7 @@ export default function Practice() {
           </div>
         </div>
       </div>
-    </Layout>
+    </AppLayout>
   )
 }
 

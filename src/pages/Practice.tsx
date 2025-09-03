@@ -1,5 +1,5 @@
-import { useState } from "react"
-import { Play, Save, Download, Trash2, Layers, Database, Server, Globe, Zap } from "lucide-react"
+import { useState, useRef } from "react"
+import { Play, Save, Download, Trash2, Layers, Database, Server, Globe, Zap, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { AppLayout } from "@/components/layout/AppLayout"
@@ -12,6 +12,28 @@ const designComponents = [
   { id: 3, name: "API Gateway", icon: Server, color: "bg-success" },
   { id: 4, name: "CDN", icon: Globe, color: "bg-warning" },
   { id: 5, name: "Cache", icon: Zap, color: "bg-destructive" },
+]
+
+const templates = [
+  {
+    id: 1,
+    name: "Microservices Architecture",
+    components: [
+      { id: 1, type: 1, x: 100, y: 100 },
+      { id: 2, type: 2, x: 300, y: 150 },
+      { id: 3, type: 3, x: 200, y: 250 }
+    ]
+  },
+  {
+    id: 2,
+    name: "E-commerce Platform",
+    components: [
+      { id: 1, type: 4, x: 150, y: 80 },
+      { id: 2, type: 1, x: 150, y: 180 },
+      { id: 3, type: 2, x: 50, y: 280 },
+      { id: 4, type: 2, x: 250, y: 280 }
+    ]
+  }
 ]
 
 const savedDesigns = [
@@ -38,9 +60,75 @@ const savedDesigns = [
   }
 ]
 
+interface PlacedComponent {
+  id: string
+  type: number
+  x: number
+  y: number
+}
+
 export default function Practice() {
   const [selectedComponent, setSelectedComponent] = useState<number | null>(null)
+  const [placedComponents, setPlacedComponents] = useState<PlacedComponent[]>([])
+  const [isDesigning, setIsDesigning] = useState(false)
+  const [showTemplates, setShowTemplates] = useState(false)
+  const canvasRef = useRef<HTMLDivElement>(null)
   const { toast } = useToast()
+
+  const handleStartNewDesign = () => {
+    setPlacedComponents([])
+    setIsDesigning(true)
+    setShowTemplates(false)
+    toast({ title: 'New Design Started', description: 'Canvas cleared. Drag components to start designing!' })
+  }
+
+  const handleLoadTemplate = () => {
+    setShowTemplates(!showTemplates)
+  }
+
+  const handleSelectTemplate = (template: typeof templates[0]) => {
+    const newComponents = template.components.map(comp => ({
+      id: `${comp.type}-${Date.now()}-${Math.random()}`,
+      type: comp.type,
+      x: comp.x,
+      y: comp.y
+    }))
+    setPlacedComponents(newComponents)
+    setIsDesigning(true)
+    setShowTemplates(false)
+    toast({ title: 'Template Loaded', description: `${template.name} loaded successfully!` })
+  }
+
+  const handleCanvasDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    if (!selectedComponent || !canvasRef.current) return
+
+    const rect = canvasRef.current.getBoundingClientRect()
+    const x = e.clientX - rect.left
+    const y = e.clientY - rect.top
+
+    const newComponent: PlacedComponent = {
+      id: `${selectedComponent}-${Date.now()}-${Math.random()}`,
+      type: selectedComponent,
+      x: Math.max(0, x - 40),
+      y: Math.max(0, y - 40)
+    }
+
+    setPlacedComponents(prev => [...prev, newComponent])
+    setIsDesigning(true)
+    toast({ title: 'Component Added', description: `${designComponents.find(c => c.id === selectedComponent)?.name} added to canvas` })
+  }
+
+  const handleCanvasDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+  }
+
+  const clearCanvas = () => {
+    setPlacedComponents([])
+    setIsDesigning(false)
+    setSelectedComponent(null)
+    toast({ title: 'Canvas Cleared', description: 'All components removed' })
+  }
 
   return (
     <AppLayout>
@@ -127,7 +215,7 @@ export default function Practice() {
               <Download className="w-4 h-4 mr-1" />
               Export
             </Button>
-            <Button variant="outline" size="sm" onClick={() => { setSelectedComponent(null); toast({ title: 'Cleared', description: 'Canvas cleared (demo)' }) }}>
+            <Button variant="outline" size="sm" onClick={clearCanvas}>
               <Trash2 className="w-4 h-4 mr-1" />
               Clear
             </Button>
@@ -138,7 +226,12 @@ export default function Practice() {
         </div>
 
         {/* Canvas Area */}
-        <div className="flex-1 relative overflow-hidden bg-muted/20">
+        <div 
+          ref={canvasRef}
+          className="flex-1 relative overflow-hidden bg-muted/20"
+          onDrop={handleCanvasDrop}
+          onDragOver={handleCanvasDragOver}
+        >
           {/* Grid Background */}
           <div 
             className="absolute inset-0 opacity-30"
@@ -151,30 +244,88 @@ export default function Practice() {
             }}
           />
           
-          {/* Empty State */}
-          <div className="flex items-center justify-center h-full">
-            <div className="text-center max-w-md">
-              <img 
-                src={designPadIllustration} 
-                alt="Design Pad Illustration" 
-                className="w-full max-w-sm mx-auto mb-6 rounded-xl shadow-soft"
-              />
-              <h3 className="text-xl font-semibold mb-2">Start Building Your System Design</h3>
-              <p className="text-muted-foreground mb-6">
-                Drag components from the sidebar to start creating your architecture diagram. 
-                Connect components with arrows and add annotations to explain your design decisions.
-              </p>
-                <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                  <Button variant="hero" onClick={() => toast({ title: 'New design', description: 'Starting a new design (demo)' })}>
-                    Start New Design
-                  </Button>
-                  <Button variant="outline" onClick={() => toast({ title: 'Template loaded', description: 'Loaded template (demo)' })}>
-                    Load Template
-                  </Button>
+          {/* Placed Components */}
+          {placedComponents.map((component) => {
+            const componentData = designComponents.find(c => c.id === component.type)
+            if (!componentData) return null
+            
+            return (
+              <div
+                key={component.id}
+                className="absolute cursor-move"
+                style={{ left: component.x, top: component.y }}
+              >
+                <div className={`w-20 h-20 ${componentData.color} rounded-lg flex flex-col items-center justify-center shadow-lg border-2 border-white/20`}>
+                  <componentData.icon className="w-6 h-6 text-white mb-1" />
+                  <span className="text-xs text-white font-medium text-center px-1">{componentData.name}</span>
                 </div>
+              </div>
+            )
+          })}
+          
+          {/* Empty State or Template Selection */}
+          {!isDesigning && (
+            <div className="flex items-center justify-center h-full">
+              <div className="text-center max-w-md">
+                {showTemplates ? (
+                  <div className="space-y-4">
+                    <h3 className="text-xl font-semibold mb-4">Choose a Template</h3>
+                    <div className="grid gap-3">
+                      {templates.map((template) => (
+                        <Card 
+                          key={template.id} 
+                          className="p-4 cursor-pointer hover:bg-accent transition-colors"
+                          onClick={() => handleSelectTemplate(template)}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <h4 className="font-medium">{template.name}</h4>
+                              <p className="text-sm text-muted-foreground">{template.components.length} components</p>
+                            </div>
+                            <ArrowRight className="w-4 h-4" />
+                          </div>
+                        </Card>
+                      ))}
+                    </div>
+                    <Button variant="outline" onClick={() => setShowTemplates(false)}>
+                      Back
+                    </Button>
+                  </div>
+                ) : (
+                  <div>
+                    <img 
+                      src={designPadIllustration} 
+                      alt="Design Pad Illustration" 
+                      className="w-full max-w-sm mx-auto mb-6 rounded-xl shadow-soft"
+                    />
+                    <h3 className="text-xl font-semibold mb-2">Start Building Your System Design</h3>
+                    <p className="text-muted-foreground mb-6">
+                      Drag components from the sidebar to start creating your architecture diagram. 
+                      Connect components with arrows and add annotations to explain your design decisions.
+                    </p>
+                    <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                      <Button variant="hero" onClick={handleStartNewDesign}>
+                        Start New Design
+                      </Button>
+                      <Button variant="outline" onClick={handleLoadTemplate}>
+                        Load Template
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-          </div>
+          )}
+          
+          {/* Instructions for active design */}
+          {isDesigning && placedComponents.length === 0 && (
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
+              <p className="text-muted-foreground">
+                Drag components from the sidebar to start designing
+              </p>
+            </div>
+          )}
+        </div>
         </div>
       </div>
     </AppLayout>

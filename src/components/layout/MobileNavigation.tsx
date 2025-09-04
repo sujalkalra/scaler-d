@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { X, BookOpen, Palette, Zap, User, Home } from "lucide-react"
+import { X, BookOpen, Palette, Zap, User, Home, Star } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { Link, useLocation } from "react-router-dom"
@@ -13,6 +13,7 @@ interface MobileNavigationProps {
 const navigationItems = [
   { name: "Home", href: "/", icon: Home },
   { name: "Articles", href: "/articles", icon: BookOpen },
+  { name: "Featured Articles", href: "/featured-articles", icon: Star },
   { name: "Practice", href: "/practice", icon: Palette },
   { name: "AI Generator", href: "/ai-generator", icon: Zap },
   { name: "Profile", href: "/profile", icon: User },

@@ -51,7 +51,13 @@ const Index = () => {
                     </Link>
                   </Button>
                   <Button asChild variant="outline" size="hero">
-                    <Link to="/articles">Browse Articles</Link>
+                    <Link to="/featured-articles">
+                      <Star className="w-4 h-4 mr-2" />
+                      Featured Articles
+                    </Link>
+                  </Button>
+                  <Button asChild variant="ghost" size="hero">
+                    <Link to="/articles">Browse All</Link>
                   </Button>
                 </div>
 

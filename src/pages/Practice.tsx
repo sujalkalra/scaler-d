@@ -67,11 +67,23 @@ interface PlacedComponent {
   y: number
 }
 
+interface Edge {
+  id: string
+  fromId: string
+  toId: string
+}
+
 export default function Practice() {
   const [selectedComponent, setSelectedComponent] = useState<number | null>(null)
   const [placedComponents, setPlacedComponents] = useState<PlacedComponent[]>([])
-  const [isDesigning, setIsDesigning] = useState(false)
+  const [edges, setEdges] = useState<Edge[]>([])
+  const [isDesigning, setIsDesigning] = useState(true)
   const [showTemplates, setShowTemplates] = useState(false)
+  const [connectMode, setConnectMode] = useState(false)
+  const [connectFrom, setConnectFrom] = useState<string | null>(null)
+  const [draggingId, setDraggingId] = useState<string | null>(null)
+  const dragOffsetRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 })
+  const movedRef = useRef(false)
   const canvasRef = useRef<HTMLDivElement>(null)
   const { toast } = useToast()
 
@@ -130,9 +142,54 @@ export default function Practice() {
 
   const clearCanvas = () => {
     setPlacedComponents([])
-    setIsDesigning(false)
+    setEdges([])
     setSelectedComponent(null)
     toast({ title: 'Canvas Cleared', description: 'All components removed' })
+  }
+
+  const handleNodeMouseDown = (e: React.MouseEvent, id: string) => {
+    if (!canvasRef.current) return
+    setDraggingId(id)
+    movedRef.current = false
+    const rect = canvasRef.current.getBoundingClientRect()
+    const comp = placedComponents.find((p) => p.id === id)
+    const offsetX = e.clientX - rect.left - (comp?.x ?? 0)
+    const offsetY = e.clientY - rect.top - (comp?.y ?? 0)
+    dragOffsetRef.current = { x: offsetX, y: offsetY }
+  }
+
+  const handleCanvasMouseMove = (e: React.MouseEvent) => {
+    if (!draggingId || !canvasRef.current) return
+    const rect = canvasRef.current.getBoundingClientRect()
+    let x = e.clientX - rect.left - dragOffsetRef.current.x
+    let y = e.clientY - rect.top - dragOffsetRef.current.y
+
+    const maxX = rect.width - 80
+    const maxY = rect.height - 80
+    x = Math.max(0, Math.min(x, maxX))
+    y = Math.max(0, Math.min(y, maxY))
+
+    movedRef.current = true
+    setPlacedComponents((prev) => prev.map((pc) => (pc.id === draggingId ? { ...pc, x, y } : pc)))
+  }
+
+  const handleCanvasMouseUp = () => {
+    setDraggingId(null)
+  }
+
+  const handleNodeClick = (id: string) => {
+    if (!connectMode) return
+    if (!connectFrom) {
+      setConnectFrom(id)
+      toast({ title: 'Connect mode', description: 'Select another component to create a connection' })
+    } else if (connectFrom !== id) {
+      const newEdge: Edge = { id: `${connectFrom}-${id}-${Date.now()}`, fromId: connectFrom, toId: id }
+      setEdges((prev) => [...prev, newEdge])
+      setConnectFrom(null)
+      toast({ title: 'Connected', description: 'Components connected' })
+    } else {
+      setConnectFrom(null)
+    }
   }
 
   return (
@@ -230,6 +287,9 @@ export default function Practice() {
               <Trash2 className="w-4 h-4 mr-1" />
               Clear
             </Button>
+            <Button variant={connectMode ? 'default' : 'outline'} size="sm" onClick={() => setConnectMode((v) => !v)}>
+              {connectMode ? 'Connecting…' : 'Connect Mode'}
+            </Button>
             <Button variant="hero" size="sm" onClick={() => toast({ title: 'Share link copied', description: 'Link copied to clipboard (demo)' })}>
               Share Design
             </Button>
@@ -242,6 +302,9 @@ export default function Practice() {
           className="flex-1 relative overflow-hidden bg-muted/20"
           onDrop={handleCanvasDrop}
           onDragOver={handleCanvasDragOver}
+          onMouseMove={handleCanvasMouseMove}
+          onMouseUp={handleCanvasMouseUp}
+          onMouseLeave={handleCanvasMouseUp}
         >
           {/* Grid Background */}
           <div 
@@ -254,7 +317,36 @@ export default function Practice() {
               backgroundSize: '20px 20px'
             }}
           />
-          
+          {/* Connections */}
+          <svg className="absolute inset-0 pointer-events-none" width="100%" height="100%">
+            {edges.map((edge) => {
+              const from = placedComponents.find((c) => c.id === edge.fromId)
+              const to = placedComponents.find((c) => c.id === edge.toId)
+              if (!from || !to) return null
+              const x1 = from.x + 40
+              const y1 = from.y + 40
+              const x2 = to.x + 40
+              const y2 = to.y + 40
+              return (
+                <line
+                  key={edge.id}
+                  x1={x1}
+                  y1={y1}
+                  x2={x2}
+                  y2={y2}
+                  stroke="hsl(var(--primary))"
+                  strokeWidth="2"
+                  markerEnd="url(#arrowhead)"
+                />
+              )
+            })}
+            <defs>
+              <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="7" refY="3.5" orient="auto">
+                <polygon points="0 0, 7 3.5, 0 7" fill="hsl(var(--primary))" />
+              </marker>
+            </defs>
+          </svg>
+
           {/* Placed Components */}
           {placedComponents.map((component) => {
             const componentData = designComponents.find(c => c.id === component.type)
@@ -266,8 +358,13 @@ export default function Practice() {
                 key={component.id}
                 className="absolute cursor-move"
                 style={{ left: component.x, top: component.y }}
+                onMouseDown={(e) => handleNodeMouseDown(e, component.id)}
+                onClick={() => {
+                  if (movedRef.current) return
+                  handleNodeClick(component.id)
+                }}
               >
-                <div className={`w-20 h-20 ${componentData.color} rounded-lg flex flex-col items-center justify-center shadow-lg border-2 border-white/20`}>
+                <div className={`w-20 h-20 ${componentData.color} rounded-lg flex flex-col items-center justify-center shadow-lg border-2 border-white/20 ${connectMode && connectFrom === component.id ? 'ring-2 ring-primary' : ''}`}>
                   <Icon className="w-6 h-6 text-white mb-1" />
                   <span className="text-xs text-white font-medium text-center px-1">{componentData.name}</span>
                 </div>
@@ -275,63 +372,18 @@ export default function Practice() {
             )
           })}
           
-          {/* Empty State or Template Selection */}
-          {!isDesigning && (
+          {/* Hint when empty */}
+          {placedComponents.length === 0 && (
             <div className="flex items-center justify-center h-full">
               <div className="text-center max-w-md">
-                {showTemplates ? (
-                  <div className="space-y-4">
-                    <h3 className="text-xl font-semibold mb-4">Choose a Template</h3>
-                    <div className="grid gap-3">
-                      {templates.map((template) => (
-                        <Card 
-                          key={template.id} 
-                          className="p-4 cursor-pointer hover:bg-accent transition-colors"
-                          onClick={() => handleSelectTemplate(template)}
-                        >
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <h4 className="font-medium">{template.name}</h4>
-                              <p className="text-sm text-muted-foreground">{template.components.length} components</p>
-                            </div>
-                            <ArrowRight className="w-4 h-4" />
-                          </div>
-                        </Card>
-                      ))}
-                    </div>
-                    <Button variant="outline" onClick={() => setShowTemplates(false)}>
-                      Back
-                    </Button>
-                  </div>
-                ) : (
-                  <div>
-                    <h3 className="text-xl font-semibold mb-2">Start Building Your System Design</h3>
-                    <p className="text-muted-foreground mb-6">
-                      Drag components from the sidebar to start creating your architecture diagram. 
-                      Connect components with arrows and add annotations to explain your design decisions.
-                    </p>
-                    <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                      <Button variant="hero" onClick={handleStartNewDesign}>
-                        Start New Design
-                      </Button>
-                      <Button variant="outline" onClick={handleLoadTemplate}>
-                        Load Template
-                      </Button>
-                    </div>
-                  </div>
-                )}
+                <h3 className="text-xl font-semibold mb-2">Drag components to the canvas</h3>
+                <p className="text-muted-foreground mb-6">
+                  Toggle Connect Mode to link components. Drag nodes to reposition them.
+                </p>
               </div>
             </div>
           )}
-          
-          {/* Instructions for active design */}
-          {isDesigning && placedComponents.length === 0 && (
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
-              <p className="text-muted-foreground">
-                Drag components from the sidebar to start designing
-              </p>
-            </div>
-          )}
+
         </div>
         </div>
       </div>

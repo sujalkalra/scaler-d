@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { useToast } from "@/hooks/use-toast"
 import { User, Mail, Calendar, Edit3, Save, BookOpen, Palette, Heart } from "lucide-react"
+import { AvatarUpload } from "@/components/profile/AvatarUpload"
 
 interface Profile {
   id: string
@@ -28,6 +29,7 @@ interface Profile {
 function ProfileContent() {
   const { user } = useAuth()
   const [profile, setProfile] = useState<Profile | null>(null)
+  const [savedArticles, setSavedArticles] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(false)
   const [formData, setFormData] = useState({
@@ -40,6 +42,7 @@ function ProfileContent() {
   useEffect(() => {
     if (user) {
       fetchProfile()
+      fetchSavedArticles()
     }
   }, [user])
 
@@ -69,6 +72,26 @@ function ProfileContent() {
       })
     } finally {
       setLoading(false)
+    }
+  }
+
+  const fetchSavedArticles = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('votes')
+        .select(`
+          articles!inner(
+            id, title, excerpt, company, read_time, tags, difficulty, created_at
+          )
+        `)
+        .eq('user_id', user?.id)
+        .eq('vote_type', 'save')
+        .order('created_at', { ascending: false })
+
+      if (error) throw error
+      setSavedArticles(data?.map(vote => vote.articles) || [])
+    } catch (error: any) {
+      console.error('Error fetching saved articles:', error)
     }
   }
 
@@ -104,6 +127,10 @@ function ProfileContent() {
     }
   }
 
+  const handleAvatarUpdate = (newUrl: string) => {
+    setProfile(prev => prev ? { ...prev, avatar_url: newUrl || null } : null)
+  }
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({
       ...formData,
@@ -127,12 +154,21 @@ function ProfileContent() {
           <CardHeader className="pb-4">
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-4">
-                <Avatar className="w-20 h-20">
-                  <AvatarImage src={profile?.avatar_url || ""} />
-                  <AvatarFallback className="text-lg">
-                    {profile?.full_name?.split(" ").map(n => n[0]).join("") || "U"}
-                  </AvatarFallback>
-                </Avatar>
+                {editing ? (
+                  <AvatarUpload
+                    currentAvatarUrl={profile?.avatar_url}
+                    userId={user?.id || ""}
+                    onAvatarUpdate={handleAvatarUpdate}
+                    userInitials={profile?.full_name?.split(" ").map(n => n[0]).join("") || "U"}
+                  />
+                ) : (
+                  <Avatar className="w-20 h-20">
+                    <AvatarImage src={profile?.avatar_url || ""} />
+                    <AvatarFallback className="text-lg">
+                      {profile?.full_name?.split(" ").map(n => n[0]).join("") || "U"}
+                    </AvatarFallback>
+                  </Avatar>
+                )}
                 <div>
                   <h1 className="text-2xl font-bold">{profile?.full_name || "Unnamed User"}</h1>
                   <p className="text-muted-foreground">@{profile?.username || "no-username"}</p>
@@ -257,19 +293,41 @@ function ProfileContent() {
           </Card>
         </div>
 
-        {/* Recent Activity */}
+        {/* Saved Articles */}
         <Card className="card-gradient">
           <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
-            <CardDescription>Your latest contributions to the platform</CardDescription>
+            <CardTitle>Saved Articles ({savedArticles.length})</CardTitle>
+            <CardDescription>Articles you've bookmarked for later reading</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-center py-8">
-              <p className="text-muted-foreground">No recent activity to show.</p>
-              <p className="text-sm text-muted-foreground mt-2">
-                Start by writing an article or creating a design!
-              </p>
-            </div>
+            {savedArticles.length === 0 ? (
+              <div className="text-center py-8">
+                <BookOpen className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                <p className="text-muted-foreground">No saved articles yet.</p>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Save articles to read them later!
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {savedArticles.slice(0, 5).map((article: any) => (
+                  <div key={article.id} className="flex items-center gap-3 p-3 rounded-lg border border-border hover:bg-muted/50 transition-colors">
+                    <div className="flex-1">
+                      <h4 className="font-medium text-sm">{article.title}</h4>
+                      <p className="text-xs text-muted-foreground mt-1">{article.company} • {article.read_time} min read</p>
+                    </div>
+                    <Badge variant="outline" className="text-xs">
+                      {article.difficulty}
+                    </Badge>
+                  </div>
+                ))}
+                {savedArticles.length > 5 && (
+                  <p className="text-sm text-muted-foreground text-center pt-2">
+                    And {savedArticles.length - 5} more...
+                  </p>
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

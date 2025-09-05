@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "./hooks/useAuth";
 import Index from "./pages/Index";
 import Articles from "./pages/Articles";
+import ArticleDetail from "./pages/ArticleDetail";
 import FeaturedArticles from "./pages/FeaturedArticles";
 import Practice from "./pages/Practice";
 import AIGenerator from "./pages/AIGenerator";
@@ -30,6 +31,7 @@ function AppRoutes() {
     <Routes>
       <Route path="/" element={<Index />} />
       <Route path="/articles" element={<Articles />} />
+      <Route path="/articles/:id" element={<ArticleDetail />} />
       <Route path="/featured-articles" element={<FeaturedArticles />} />
       <Route path="/practice" element={<Practice />} />
       <Route path="/ai-generator" element={<AIGenerator />} />

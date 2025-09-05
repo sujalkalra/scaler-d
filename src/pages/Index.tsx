@@ -45,7 +45,7 @@ const Index = () => {
 
                 <div className="flex flex-col sm:flex-row gap-4">
                   <Button asChild variant="hero" size="hero" className="group">
-                    <Link to="/practice">
+                    <Link to="/articles">
                       Start Learning
                       <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                     </Link>
@@ -80,20 +80,21 @@ const Index = () => {
                   <img 
                     src={heroImage} 
                     alt="System Design Architecture" 
-                    className="w-full h-auto"
+                    className="w-full h-auto object-cover"
+                    style={{ maxHeight: '400px' }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
                 </div>
                 
-                {/* Floating Cards */}
-                <div className="absolute -top-4 -right-4 bg-card rounded-xl p-4 shadow-medium border border-border animate-bounce-in">
+                {/* Floating Cards - positioned to not overlap buttons */}
+                <div className="absolute top-4 right-4 bg-card rounded-xl p-4 shadow-medium border border-border animate-bounce-in">
                   <div className="flex items-center gap-2">
                     <Zap className="w-5 h-5 text-warning" />
                     <span className="font-semibold text-sm">AI-Powered</span>
                   </div>
                 </div>
                 
-                <div className="absolute -bottom-4 -left-4 bg-card rounded-xl p-4 shadow-medium border border-border animate-bounce-in" style={{ animationDelay: '200ms' }}>
+                <div className="absolute bottom-4 left-4 bg-card rounded-xl p-4 shadow-medium border border-border animate-bounce-in" style={{ animationDelay: '200ms' }}>
                   <div className="flex items-center gap-2">
                     <PenTool className="w-5 h-5 text-primary" />
                     <span className="font-semibold text-sm">Interactive</span>

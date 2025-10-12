@@ -110,11 +110,18 @@ export default function AIGenerator() {
         return
       }
 
+      // Embed the diagram image in the markdown content
+      let contentWithImage = generated.architecture
+      if (generated.diagram) {
+        // Add the diagram at the beginning after the title
+        contentWithImage = `![${generated.company} System Architecture Diagram](${generated.diagram})\n\n${generated.architecture}`
+      }
+
       const { data: article, error } = await supabase
         .from('articles')
         .insert({
           title: `${generated.company} System Design`,
-          content: generated.architecture,
+          content: contentWithImage,
           excerpt: `Learn how ${generated.company} scales to millions of users with this comprehensive system design breakdown.`,
           company: generated.company,
           company_image: generated.diagram,

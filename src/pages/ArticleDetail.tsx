@@ -89,17 +89,31 @@ export default function ArticleDetail() {
 
   const fetchComments = async () => {
     try {
-      const { data, error } = await supabase
+      const { data: commentsData, error } = await supabase
         .from('comments')
-        .select(`
-          *,
-          profiles(username, full_name)
-        `)
+        .select('*')
         .eq('article_id', id)
         .order('created_at', { ascending: false })
 
       if (error) throw error
-      setComments((data || []) as any)
+
+      // Fetch profiles separately for each comment
+      const commentsWithProfiles = await Promise.all(
+        (commentsData || []).map(async (comment) => {
+          const { data: profileData } = await supabase
+            .from('profiles')
+            .select('username, full_name')
+            .eq('user_id', comment.user_id)
+            .maybeSingle()
+
+          return {
+            ...comment,
+            profiles: profileData
+          }
+        })
+      )
+
+      setComments(commentsWithProfiles as any)
     } catch (error: any) {
       console.error('Error fetching comments:', error)
     }

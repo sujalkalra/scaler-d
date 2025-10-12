@@ -101,12 +101,12 @@ function ProfileContent() {
     try {
       const { data, error } = await supabase
         .from("profiles")
-        .upsert({
-          user_id: user.id,
+        .update({
           username: formData.username,
           full_name: formData.full_name,
           bio: formData.bio
         })
+        .eq('user_id', user.id)
         .select()
         .single()
 

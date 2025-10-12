@@ -60,8 +60,24 @@ export function TopNavbar({ onMenuClick }: TopNavbarProps) {
             <span className="hidden sm:block">SysDesign</span>
           </Link>
 
+          {/* Desktop Navigation Links */}
+          <nav className="hidden lg:flex items-center gap-1 ml-6">
+            <Button variant="ghost" size="sm" asChild>
+              <Link to="/articles">Articles</Link>
+            </Button>
+            <Button variant="ghost" size="sm" asChild>
+              <Link to="/featured-articles">Featured</Link>
+            </Button>
+            <Button variant="ghost" size="sm" asChild>
+              <Link to="/practice">Practice</Link>
+            </Button>
+            <Button variant="ghost" size="sm" asChild>
+              <Link to="/ai-generator">AI Generator</Link>
+            </Button>
+          </nav>
+
           {/* Search Bar */}
-          <div className="hidden md:flex flex-1 max-w-lg">
+          <div className="hidden md:flex flex-1 max-w-lg ml-4">
             <div className="relative w-full">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
               <Input

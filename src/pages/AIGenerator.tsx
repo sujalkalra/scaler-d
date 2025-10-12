@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Zap, Sparkles, Download, Copy, RefreshCw, Wand2 } from "lucide-react"
+import { Zap, Sparkles, Download, Copy, RefreshCw, Wand2, Send } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { AppLayout } from "@/components/layout/AppLayout"
 import { useToast } from "@/hooks/use-toast"
 import { supabase } from "@/integrations/supabase/client"
+import { useNavigate } from "react-router-dom"
 
 const popularPrompts = [
   "Design a scalable video streaming platform like Netflix",
@@ -53,8 +54,10 @@ export default function AIGenerator() {
   const [prompt, setPrompt] = useState("")
   const [company, setCompany] = useState("")
   const [isGenerating, setIsGenerating] = useState(false)
+  const [isPosting, setIsPosting] = useState(false)
   const [generated, setGenerated] = useState<typeof exampleGeneration | null>(null)
   const { toast } = useToast()
+  const navigate = useNavigate()
 
   const handleGenerate = async () => {
     if (!prompt.trim()) return
@@ -87,6 +90,60 @@ export default function AIGenerator() {
       })
     } finally {
       setIsGenerating(false)
+    }
+  }
+
+  const handlePostArticle = async () => {
+    if (!generated) return
+
+    setIsPosting(true)
+    
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      
+      if (!user) {
+        toast({
+          title: "Authentication required",
+          description: "Please sign in to post articles.",
+          variant: "destructive",
+        })
+        return
+      }
+
+      const { data: article, error } = await supabase
+        .from('articles')
+        .insert({
+          title: `${generated.company} System Design`,
+          content: generated.architecture,
+          excerpt: `Learn how ${generated.company} scales to millions of users with this comprehensive system design breakdown.`,
+          company: generated.company,
+          company_image: generated.diagram,
+          difficulty: 'intermediate',
+          tags: ['system design', 'architecture', generated.company.toLowerCase()],
+          author_id: user.id,
+          published: true,
+          read_time: Math.ceil(generated.architecture.split(' ').length / 200)
+        })
+        .select()
+        .single()
+
+      if (error) throw error
+
+      toast({
+        title: "Article posted!",
+        description: "Your system design article has been published successfully.",
+      })
+
+      navigate(`/articles/${article.id}`)
+    } catch (error: any) {
+      console.error('Post error:', error)
+      toast({
+        title: "Error",
+        description: error.message || "Failed to post article. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsPosting(false)
     }
   }
 
@@ -223,9 +280,29 @@ export default function AIGenerator() {
                   </div>
                 </div>
 
-                <Button variant="hero" className="w-full" onClick={() => setGenerated(null)}>
-                  Generate Another Design
-                </Button>
+                <div className="flex gap-2">
+                  <Button 
+                    variant="hero" 
+                    className="flex-1" 
+                    onClick={handlePostArticle}
+                    disabled={isPosting}
+                  >
+                    {isPosting ? (
+                      <>
+                        <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                        Posting...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-4 h-4 mr-2" />
+                        Post as Article
+                      </>
+                    )}
+                  </Button>
+                  <Button variant="outline" className="flex-1" onClick={() => setGenerated(null)}>
+                    Generate Another
+                  </Button>
+                </div>
               </div>
             </Card>
           ) : (

@@ -5,6 +5,8 @@ import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { AppLayout } from "@/components/layout/AppLayout"
+import { useToast } from "@/hooks/use-toast"
+import { supabase } from "@/integrations/supabase/client"
 
 const popularPrompts = [
   "Design a scalable video streaming platform like Netflix",
@@ -49,18 +51,43 @@ Netflix serves 15+ billion hours of content monthly to 230+ million subscribers 
 
 export default function AIGenerator() {
   const [prompt, setPrompt] = useState("")
+  const [company, setCompany] = useState("")
   const [isGenerating, setIsGenerating] = useState(false)
   const [generated, setGenerated] = useState<typeof exampleGeneration | null>(null)
+  const { toast } = useToast()
 
   const handleGenerate = async () => {
     if (!prompt.trim()) return
     
     setIsGenerating(true)
-    // Simulate API call
-    setTimeout(() => {
-      setGenerated(exampleGeneration)
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-system-design', {
+        body: { 
+          title: prompt,
+          company: company.trim() || undefined
+        }
+      })
+
+      if (error) throw error
+
+      if (data) {
+        setGenerated(data)
+        toast({
+          title: "Success",
+          description: "System design generated successfully!",
+        })
+      }
+    } catch (error: any) {
+      console.error('Generation error:', error)
+      toast({
+        title: "Error",
+        description: error.message || "Failed to generate system design. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
       setIsGenerating(false)
-    }, 3000)
+    }
   }
 
   return (
@@ -100,6 +127,8 @@ export default function AIGenerator() {
                 <Input
                   placeholder="Company name (optional)"
                   className="focus-ring"
+                  value={company}
+                  onChange={(e) => setCompany(e.target.value)}
                 />
                 <Button 
                   onClick={handleGenerate}
@@ -176,14 +205,21 @@ export default function AIGenerator() {
                 {/* System Diagram */}
                 <div>
                   <h4 className="font-medium mb-2">System Diagram</h4>
-                  <div className="bg-muted/50 rounded-lg p-8 text-center">
-                    <div className="w-full h-64 bg-gradient-card rounded-lg flex items-center justify-center border-2 border-dashed border-border">
-                      <div className="text-center">
-                        <Zap className="w-12 h-12 text-muted-foreground mx-auto mb-2" />
-                        <p className="text-muted-foreground">AI-Generated Diagram</p>
-                        <p className="text-sm text-muted-foreground">System architecture visualization would appear here</p>
+                  <div className="bg-muted/50 rounded-lg p-4">
+                    {generated.diagram ? (
+                      <img 
+                        src={generated.diagram} 
+                        alt="System Architecture Diagram" 
+                        className="w-full h-auto rounded-lg"
+                      />
+                    ) : (
+                      <div className="w-full h-64 bg-gradient-card rounded-lg flex items-center justify-center border-2 border-dashed border-border">
+                        <div className="text-center">
+                          <Zap className="w-12 h-12 text-muted-foreground mx-auto mb-2" />
+                          <p className="text-muted-foreground">Diagram generation in progress...</p>
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 </div>
 

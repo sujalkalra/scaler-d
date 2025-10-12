@@ -197,15 +197,17 @@ export default function ArticleDetail() {
         })
       } else {
         setSaved(!isCurrentlyVoted)
+        console.log('Save action:', { voteType, isCurrentlyVoted, newSavedState: !isCurrentlyVoted, userId: user.id, articleId: id })
         toast({
           title: isCurrentlyVoted ? "Unsaved" : "Saved",
           description: `Article ${isCurrentlyVoted ? 'removed from' : 'added to'} your saved articles.`,
         })
       }
     } catch (error: any) {
+      console.error('Vote error:', error)
       toast({
         title: "Error",
-        description: "Failed to update vote. Please try again.",
+        description: error.message || "Failed to update vote. Please try again.",
         variant: "destructive",
       })
     }

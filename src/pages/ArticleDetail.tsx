@@ -158,6 +158,16 @@ export default function ArticleDetail() {
           .eq('article_id', id)
           .eq('user_id', user.id)
           .eq('vote_type', voteType)
+
+        // Decrement count in articles table
+        if (voteType === 'like' && article) {
+          await supabase
+            .from('articles')
+            .update({ upvotes: Math.max(0, (article.upvotes || 0) - 1) })
+            .eq('id', id)
+          
+          setArticle({ ...article, upvotes: Math.max(0, (article.upvotes || 0) - 1) })
+        }
       } else {
         // Add vote
         await supabase
@@ -167,6 +177,16 @@ export default function ArticleDetail() {
             user_id: user.id,
             vote_type: voteType
           })
+
+        // Increment count in articles table
+        if (voteType === 'like' && article) {
+          await supabase
+            .from('articles')
+            .update({ upvotes: (article.upvotes || 0) + 1 })
+            .eq('id', id)
+          
+          setArticle({ ...article, upvotes: (article.upvotes || 0) + 1 })
+        }
       }
 
       if (voteType === 'like') {

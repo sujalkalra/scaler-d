@@ -77,19 +77,30 @@ function ProfileContent() {
 
   const fetchSavedArticles = async () => {
     try {
-      const { data, error } = await supabase
+      // Get all vote records for saved articles
+      const { data: votesData, error: votesError } = await supabase
         .from('votes')
-        .select(`
-          articles!inner(
-            id, title, excerpt, company, read_time, tags, difficulty, created_at
-          )
-        `)
+        .select('article_id')
         .eq('user_id', user?.id)
         .eq('vote_type', 'save')
+
+      if (votesError) throw votesError
+
+      if (!votesData || votesData.length === 0) {
+        setSavedArticles([])
+        return
+      }
+
+      // Get the actual articles
+      const articleIds = votesData.map(v => v.article_id)
+      const { data: articlesData, error: articlesError } = await supabase
+        .from('articles')
+        .select('id, title, excerpt, company, read_time, tags, difficulty, created_at')
+        .in('id', articleIds)
         .order('created_at', { ascending: false })
 
-      if (error) throw error
-      setSavedArticles(data?.map(vote => vote.articles) || [])
+      if (articlesError) throw articlesError
+      setSavedArticles(articlesData || [])
     } catch (error: any) {
       console.error('Error fetching saved articles:', error)
     }

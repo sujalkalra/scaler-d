@@ -47,7 +47,8 @@ Netflix serves 15+ billion hours of content monthly to 230+ million subscribers 
 - **Real-time Processing**: Apache Kafka for event streaming
 - **A/B Testing**: Continuous experimentation platform`,
   
-  diagram: "https://example.com/netflix-diagram.png" // This would be AI-generated
+  logo: null, // Logo image URL
+  diagram: null // HLD diagram URL
 }
 
 export default function AIGenerator() {
@@ -113,8 +114,26 @@ export default function AIGenerator() {
       // Embed the diagram image in the markdown content
       let contentWithImage = generated.architecture
       if (generated.diagram) {
-        // Add the diagram at the beginning after the title
-        contentWithImage = `![${generated.company} System Architecture Diagram](${generated.diagram})\n\n${generated.architecture}`
+        // Add the HLD diagram at the beginning after any initial heading
+        const lines = generated.architecture.split('\n')
+        const firstHeadingIndex = lines.findIndex(line => line.startsWith('#'))
+        
+        if (firstHeadingIndex !== -1) {
+          // Insert diagram after the first heading
+          lines.splice(
+            firstHeadingIndex + 1, 
+            0, 
+            '',
+            '## High-Level Design Architecture',
+            '',
+            `![${generated.company} High-Level System Architecture](${generated.diagram})`,
+            ''
+          )
+          contentWithImage = lines.join('\n')
+        } else {
+          // No heading found, add at the beginning
+          contentWithImage = `## High-Level Design Architecture\n\n![${generated.company} System Architecture](${generated.diagram})\n\n${generated.architecture}`
+        }
       }
 
       const { data: article, error } = await supabase
@@ -124,7 +143,7 @@ export default function AIGenerator() {
           content: contentWithImage,
           excerpt: `Learn how ${generated.company} scales to millions of users with this comprehensive system design breakdown.`,
           company: generated.company,
-          company_image: generated.diagram,
+          company_image: generated.logo || generated.diagram, // Use logo, fallback to diagram
           difficulty: 'intermediate',
           tags: ['system design', 'architecture', generated.company.toLowerCase()],
           author_id: user.id,
@@ -267,25 +286,41 @@ export default function AIGenerator() {
                 </div>
 
                 {/* System Diagram */}
-                <div>
-                  <h4 className="font-medium mb-2">System Diagram</h4>
-                  <div className="bg-muted/50 rounded-lg p-4">
-                    {generated.diagram ? (
+                {generated.diagram && (
+                  <div>
+                    <h4 className="font-medium mb-2">High-Level Design Diagram</h4>
+                    <div className="bg-muted/50 rounded-lg p-4">
                       <img 
                         src={generated.diagram} 
                         alt="System Architecture Diagram" 
                         className="w-full h-auto rounded-lg"
                       />
-                    ) : (
-                      <div className="w-full h-64 bg-gradient-card rounded-lg flex items-center justify-center border-2 border-dashed border-border">
-                        <div className="text-center">
-                          <Zap className="w-12 h-12 text-muted-foreground mx-auto mb-2" />
-                          <p className="text-muted-foreground">Diagram generation in progress...</p>
-                        </div>
-                      </div>
-                    )}
+                    </div>
                   </div>
-                </div>
+                )}
+
+                {/* Logo */}
+                {generated.logo && (
+                  <div>
+                    <h4 className="font-medium mb-2">Company Logo</h4>
+                    <div className="bg-muted/50 rounded-lg p-4 flex justify-center">
+                      <img 
+                        src={generated.logo} 
+                        alt="Company Logo" 
+                        className="w-32 h-32 rounded-lg object-contain"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {!generated.diagram && !generated.logo && (
+                  <div className="w-full h-64 bg-gradient-card rounded-lg flex items-center justify-center border-2 border-dashed border-border">
+                    <div className="text-center">
+                      <Zap className="w-12 h-12 text-muted-foreground mx-auto mb-2" />
+                      <p className="text-muted-foreground">Images generation in progress...</p>
+                    </div>
+                  </div>
+                )}
 
                 <div className="flex gap-2">
                   <Button 

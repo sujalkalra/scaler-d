@@ -101,59 +101,101 @@ Style Guidelines:
       throw new Error("No content generated");
     }
 
-    // Generate diagram image
-    const diagramPrompt = `Create a professional system architecture diagram for ${company || title}. 
+    // Generate logo image
+    const logoPrompt = `Create a modern, minimalist logo icon for ${company || title}. 
     
-Style: Modern, clean technical diagram with:
-- Simple geometric shapes (rectangles, circles) representing components
-- Clear labels for each component
-- Arrows showing data flow
-- Color-coded sections (e.g., client layer, server layer, data layer)
+Style requirements:
+- Simple, clean icon design
+- Represents the company/service concept
+- Solid colors with gradients acceptable
 - Professional tech company aesthetic
-- White or light background
-- High contrast for readability
+- Square format
+- High contrast
+- No text in the logo
+- Modern flat design or subtle 3D effect
 
-The diagram should show the high-level architecture with components like:
-- Client/User interface
-- Load Balancer
-- Application Servers
-- Database
-- Cache
-- CDN
-- Message Queue (if applicable)
+The logo should be instantly recognizable and work well as a small thumbnail.`;
 
-Make it visually clean and easy to understand at a glance.`;
+    // Generate HLD diagram image
+    const diagramPrompt = `Create a comprehensive High-Level Design (HLD) system architecture diagram for ${company || title}. 
 
-    const imageResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash-image-preview",
-        messages: [
-          {
-            role: "user",
-            content: diagramPrompt
-          }
-        ],
-        modalities: ["image", "text"]
+Style: Professional technical architecture diagram with:
+- Clean geometric shapes (rectangles, rounded rectangles, circles, cylinders)
+- Clear, readable labels for all components
+- Directional arrows showing data/request flow with labels
+- Color-coded layers:
+  * Client/Frontend layer (blue tones)
+  * Application/Backend layer (green tones)
+  * Data/Storage layer (orange/red tones)
+  * External services (purple/gray tones)
+- Professional whiteboard or light background
+- High contrast for excellent readability
+- Component groupings with subtle boundaries
+- Network communication paths clearly marked
+
+The diagram MUST include these architectural layers:
+1. **Client Layer**: Web browsers, mobile apps, API clients
+2. **CDN/Edge Layer**: Content delivery, static assets
+3. **Load Balancing Layer**: Request distribution
+4. **Application Layer**: API servers, microservices, business logic
+5. **Caching Layer**: Redis, Memcached
+6. **Database Layer**: Primary DB, replicas, sharding
+7. **Storage Layer**: Object storage, file systems
+8. **Message Queue**: Kafka, RabbitMQ (if applicable)
+9. **Monitoring/Analytics**: Logging, metrics
+
+Show realistic data flow with numbered steps and arrows. Make it comprehensive yet easy to understand.`;
+
+    // Generate both images in parallel
+    const [logoResponse, diagramResponse] = await Promise.all([
+      fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash-image-preview",
+          messages: [{ role: "user", content: logoPrompt }],
+          modalities: ["image", "text"]
+        }),
       }),
-    });
+      fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash-image-preview",
+          messages: [{ role: "user", content: diagramPrompt }],
+          modalities: ["image", "text"]
+        }),
+      })
+    ]);
 
+    let logoUrl = null;
     let diagramUrl = null;
-    if (imageResponse.ok) {
-      const imageData = await imageResponse.json();
-      diagramUrl = imageData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+
+    if (logoResponse.ok) {
+      const logoData = await logoResponse.json();
+      logoUrl = logoData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
     } else {
-      console.error("Image generation failed, continuing without diagram");
+      console.error("Logo generation failed");
+    }
+
+    if (diagramResponse.ok) {
+      const diagramData = await diagramResponse.json();
+      diagramUrl = diagramData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    } else {
+      console.error("Diagram generation failed");
     }
 
     return new Response(
       JSON.stringify({
         company: company || title.split(" ")[0],
         architecture: articleContent,
+        logo: logoUrl,
         diagram: diagramUrl
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }

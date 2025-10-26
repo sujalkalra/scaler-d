@@ -74,6 +74,9 @@ export function TopNavbar({ onMenuClick }: TopNavbarProps) {
             <Button variant="ghost" size="sm" asChild>
               <Link to="/ai-generator">AI Generator</Link>
             </Button>
+            <Button variant="ghost" size="sm" asChild>
+              <Link to="/roadmap">Roadmap</Link>
+            </Button>
           </nav>
 
           {/* Search Bar */}

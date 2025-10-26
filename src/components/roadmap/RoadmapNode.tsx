@@ -94,14 +94,16 @@ export function RoadmapNode({ node, isCompleted, onToggleComplete, viewMode = "g
 
   return (
     <Card 
-      onDoubleClick={onToggleComplete}
       className={cn(
-        "group hover:shadow-lg transition-all duration-300 hover:scale-[1.02] relative overflow-hidden cursor-pointer",
+        "group hover:shadow-lg transition-all duration-300 hover:scale-[1.02] relative overflow-hidden",
         isCompleted && "border-primary bg-primary/5 shadow-primary/10"
       )}
     >
       {/* Decorative gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+      <div 
+        onDoubleClick={onToggleComplete}
+        className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 cursor-pointer" 
+      />
       
       {/* Completion indicator */}
       <button

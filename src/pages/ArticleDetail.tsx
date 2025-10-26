@@ -136,7 +136,18 @@ export default function ArticleDetail() {
       const votes = data || []
       setUpvoted(votes.some(v => v.vote_type === 'upvote'))
       setDownvoted(votes.some(v => v.vote_type === 'downvote'))
-      setSaved(votes.some(v => v.vote_type === 'save'))
+
+      // Check saved status from saved_articles table
+      const { data: savedData, error: savedError } = await supabase
+        .from('saved_articles')
+        .select('id')
+        .eq('article_id', id)
+        .eq('user_id', user?.id)
+        .maybeSingle()
+
+      if (!savedError) {
+        setSaved(!!savedData)
+      }
     } catch (error: any) {
       console.error('Error checking votes:', error)
     }
@@ -153,7 +164,35 @@ export default function ArticleDetail() {
     }
 
     try {
-      const isCurrentlyVoted = voteType === 'upvote' ? upvoted : voteType === 'downvote' ? downvoted : saved
+      // Handle save separately using saved_articles table
+      if (voteType === 'save') {
+        if (saved) {
+          // Remove from saved_articles
+          await supabase
+            .from('saved_articles')
+            .delete()
+            .eq('article_id', id)
+            .eq('user_id', user.id)
+        } else {
+          // Add to saved_articles
+          await supabase
+            .from('saved_articles')
+            .insert({
+              article_id: id,
+              user_id: user.id
+            })
+        }
+        
+        setSaved(!saved)
+        toast({
+          title: saved ? "Unsaved" : "Saved",
+          description: `Article ${saved ? 'removed from' : 'added to'} your saved articles.`,
+        })
+        return
+      }
+
+      // Handle upvote/downvote using votes table
+      const isCurrentlyVoted = voteType === 'upvote' ? upvoted : downvoted
       
       if (isCurrentlyVoted) {
         // Remove vote
@@ -229,12 +268,6 @@ export default function ArticleDetail() {
         setUpvoted(!isCurrentlyVoted)
       } else if (voteType === 'downvote') {
         setDownvoted(!isCurrentlyVoted)
-      } else {
-        setSaved(!isCurrentlyVoted)
-        toast({
-          title: isCurrentlyVoted ? "Unsaved" : "Saved",
-          description: `Article ${isCurrentlyVoted ? 'removed from' : 'added to'} your saved articles.`,
-        })
       }
     } catch (error: any) {
       console.error('Vote error:', error)

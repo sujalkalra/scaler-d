@@ -7,6 +7,7 @@ import { AppLayout } from "@/components/layout/AppLayout"
 import { useToast } from "@/hooks/use-toast"
 import { supabase } from "@/integrations/supabase/client"
 import { Link } from "react-router-dom"
+import { useAuth } from "@/hooks/useAuth"
 
 interface Article {
   id: string
@@ -39,11 +40,16 @@ export default function Articles() {
   const [loading, setLoading] = useState(true)
   const [selectedFilter, setSelectedFilter] = useState("all")
   const [selectedCompany, setSelectedCompany] = useState<string | null>(null)
+  const [savedArticleIds, setSavedArticleIds] = useState<Set<string>>(new Set())
   const { toast } = useToast()
+  const { user } = useAuth()
 
   useEffect(() => {
     fetchArticles()
-  }, [])
+    if (user) {
+      fetchSavedArticles()
+    }
+  }, [user])
 
   const fetchArticles = async () => {
     try {
@@ -63,6 +69,79 @@ export default function Articles() {
       })
     } finally {
       setLoading(false)
+    }
+  }
+
+  const fetchSavedArticles = async () => {
+    if (!user) return
+    
+    try {
+      const { data, error } = await supabase
+        .from('saved_articles')
+        .select('article_id')
+        .eq('user_id', user.id)
+
+      if (error) throw error
+      setSavedArticleIds(new Set(data?.map(s => s.article_id) || []))
+    } catch (error: any) {
+      console.error('Error fetching saved articles:', error)
+    }
+  }
+
+  const handleBookmark = async (articleId: string, e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    
+    if (!user) {
+      toast({
+        title: "Please sign in",
+        description: "You need to be signed in to save articles.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    try {
+      const isSaved = savedArticleIds.has(articleId)
+      
+      if (isSaved) {
+        await supabase
+          .from('saved_articles')
+          .delete()
+          .eq('article_id', articleId)
+          .eq('user_id', user.id)
+        
+        setSavedArticleIds(prev => {
+          const newSet = new Set(prev)
+          newSet.delete(articleId)
+          return newSet
+        })
+        
+        toast({
+          title: "Unsaved",
+          description: "Article removed from your saved articles.",
+        })
+      } else {
+        await supabase
+          .from('saved_articles')
+          .insert({
+            article_id: articleId,
+            user_id: user.id
+          })
+        
+        setSavedArticleIds(prev => new Set(prev).add(articleId))
+        
+        toast({
+          title: "Saved",
+          description: "Article added to your saved articles.",
+        })
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to save article.",
+        variant: "destructive",
+      })
     }
   }
 
@@ -267,9 +346,14 @@ export default function Articles() {
                         <span>{article.views || 0} views</span>
                       </div>
                     </div>
-                    <div className="text-muted-foreground">
-                      <Bookmark className="w-4 h-4" />
-                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className={`${savedArticleIds.has(article.id) ? 'text-primary' : 'text-muted-foreground'} hover:text-primary`}
+                      onClick={(e) => handleBookmark(article.id, e)}
+                    >
+                      <Bookmark className={`w-4 h-4 ${savedArticleIds.has(article.id) ? 'fill-current' : ''}`} />
+                    </Button>
                   </div>
                 </div>
               </Card>

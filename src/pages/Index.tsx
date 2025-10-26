@@ -50,7 +50,7 @@ const Index = () => {
                 {/* CTA Buttons - Improved visibility */}
                 <div className="flex flex-col sm:flex-row gap-4">
                   <Button asChild variant="hero" size="hero" className="group shadow-large hover:shadow-glow">
-                    <Link to="/articles">
+                    <Link to="/roadmap">
                       Start Learning
                       <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                     </Link>

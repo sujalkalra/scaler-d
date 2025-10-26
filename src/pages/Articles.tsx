@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { Heart, MessageCircle, Share2, Bookmark, Clock, User, Building2 } from "lucide-react"
+import { ArrowUp, ArrowDown, MessageCircle, Share2, Bookmark, Clock, User, Building2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
@@ -17,6 +17,7 @@ interface Article {
   read_time: number | null
   created_at: string
   upvotes: number | null
+  downvotes: number | null
   views: number | null
   tags: string[] | null
   difficulty: string | null
@@ -254,8 +255,9 @@ export default function Articles() {
                   <div className="flex items-center justify-between pt-4 border-t border-border">
                     <div className="flex items-center gap-4">
                       <div className="flex items-center gap-1 text-muted-foreground text-sm">
-                        <Heart className="w-4 h-4" />
-                        {article.upvotes || 0}
+                        <ArrowUp className="w-4 h-4" />
+                        <span className="font-semibold">{(article.upvotes || 0) - (article.downvotes || 0)}</span>
+                        <ArrowDown className="w-4 h-4" />
                       </div>
                       <div className="flex items-center gap-1 text-muted-foreground text-sm">
                         <MessageCircle className="w-4 h-4" />

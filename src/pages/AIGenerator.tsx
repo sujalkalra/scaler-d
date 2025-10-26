@@ -143,7 +143,7 @@ export default function AIGenerator() {
           content: contentWithImage,
           excerpt: `Learn how ${generated.company} scales to millions of users with this comprehensive system design breakdown.`,
           company: generated.company,
-          company_image: generated.logo || generated.diagram, // Use logo, fallback to diagram
+          company_image: generated.logo, // Use logo for the card image only
           difficulty: 'intermediate',
           tags: ['system design', 'architecture', generated.company.toLowerCase()],
           author_id: user.id,

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react"
 import { useParams, Link } from "react-router-dom"
-import { ArrowLeft, Heart, MessageCircle, Share2, Bookmark, Clock, Building2, User } from "lucide-react"
+import { ArrowLeft, ArrowUp, ArrowDown, MessageCircle, Share2, Bookmark, Clock, Building2, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
@@ -22,6 +22,7 @@ interface Article {
   read_time: number | null
   created_at: string
   upvotes: number | null
+  downvotes: number | null
   views: number | null
   tags: string[] | null
   difficulty: string | null
@@ -47,7 +48,8 @@ export default function ArticleDetail() {
   const [comments, setComments] = useState<Comment[]>([])
   const [newComment, setNewComment] = useState("")
   const [loading, setLoading] = useState(true)
-  const [liked, setLiked] = useState(false)
+  const [upvoted, setUpvoted] = useState(false)
+  const [downvoted, setDownvoted] = useState(false)
   const [saved, setSaved] = useState(false)
   const [submittingComment, setSubmittingComment] = useState(false)
 
@@ -132,14 +134,15 @@ export default function ArticleDetail() {
       if (error) throw error
       
       const votes = data || []
-      setLiked(votes.some(v => v.vote_type === 'like'))
+      setUpvoted(votes.some(v => v.vote_type === 'upvote'))
+      setDownvoted(votes.some(v => v.vote_type === 'downvote'))
       setSaved(votes.some(v => v.vote_type === 'save'))
     } catch (error: any) {
       console.error('Error checking votes:', error)
     }
   }
 
-  const handleVote = async (voteType: 'like' | 'save') => {
+  const handleVote = async (voteType: 'upvote' | 'downvote' | 'save') => {
     if (!user) {
       toast({
         title: "Please sign in",
@@ -150,7 +153,7 @@ export default function ArticleDetail() {
     }
 
     try {
-      const isCurrentlyVoted = voteType === 'like' ? liked : saved
+      const isCurrentlyVoted = voteType === 'upvote' ? upvoted : voteType === 'downvote' ? downvoted : saved
       
       if (isCurrentlyVoted) {
         // Remove vote
@@ -162,16 +165,40 @@ export default function ArticleDetail() {
           .eq('vote_type', voteType)
 
         // Decrement count in articles table
-        if (voteType === 'like' && article) {
-          await supabase
-            .from('articles')
-            .update({ upvotes: Math.max(0, (article.upvotes || 0) - 1) })
-            .eq('id', id)
-          
-          setArticle({ ...article, upvotes: Math.max(0, (article.upvotes || 0) - 1) })
+        if (article) {
+          if (voteType === 'upvote') {
+            await supabase
+              .from('articles')
+              .update({ upvotes: Math.max(0, (article.upvotes || 0) - 1) })
+              .eq('id', id)
+            setArticle({ ...article, upvotes: Math.max(0, (article.upvotes || 0) - 1) })
+          } else if (voteType === 'downvote') {
+            await supabase
+              .from('articles')
+              .update({ downvotes: Math.max(0, (article.downvotes || 0) - 1) })
+              .eq('id', id)
+            setArticle({ ...article, downvotes: Math.max(0, (article.downvotes || 0) - 1) })
+          }
         }
       } else {
-        // Add vote
+        // If switching between upvote/downvote, remove the opposite vote first
+        if (voteType === 'upvote' && downvoted) {
+          await supabase.from('votes').delete().eq('article_id', id).eq('user_id', user.id).eq('vote_type', 'downvote')
+          if (article) {
+            await supabase.from('articles').update({ downvotes: Math.max(0, (article.downvotes || 0) - 1) }).eq('id', id)
+            setArticle({ ...article, downvotes: Math.max(0, (article.downvotes || 0) - 1) })
+          }
+          setDownvoted(false)
+        } else if (voteType === 'downvote' && upvoted) {
+          await supabase.from('votes').delete().eq('article_id', id).eq('user_id', user.id).eq('vote_type', 'upvote')
+          if (article) {
+            await supabase.from('articles').update({ upvotes: Math.max(0, (article.upvotes || 0) - 1) }).eq('id', id)
+            setArticle({ ...article, upvotes: Math.max(0, (article.upvotes || 0) - 1) })
+          }
+          setUpvoted(false)
+        }
+
+        // Add new vote
         await supabase
           .from('votes')
           .insert({
@@ -181,25 +208,29 @@ export default function ArticleDetail() {
           })
 
         // Increment count in articles table
-        if (voteType === 'like' && article) {
-          await supabase
-            .from('articles')
-            .update({ upvotes: (article.upvotes || 0) + 1 })
-            .eq('id', id)
-          
-          setArticle({ ...article, upvotes: (article.upvotes || 0) + 1 })
+        if (article) {
+          if (voteType === 'upvote') {
+            await supabase
+              .from('articles')
+              .update({ upvotes: (article.upvotes || 0) + 1 })
+              .eq('id', id)
+            setArticle({ ...article, upvotes: (article.upvotes || 0) + 1 })
+          } else if (voteType === 'downvote') {
+            await supabase
+              .from('articles')
+              .update({ downvotes: (article.downvotes || 0) + 1 })
+              .eq('id', id)
+            setArticle({ ...article, downvotes: (article.downvotes || 0) + 1 })
+          }
         }
       }
 
-      if (voteType === 'like') {
-        setLiked(!isCurrentlyVoted)
-        toast({
-          title: isCurrentlyVoted ? "Unliked" : "Liked",
-          description: `Article ${isCurrentlyVoted ? 'removed from' : 'added to'} your likes.`,
-        })
+      if (voteType === 'upvote') {
+        setUpvoted(!isCurrentlyVoted)
+      } else if (voteType === 'downvote') {
+        setDownvoted(!isCurrentlyVoted)
       } else {
         setSaved(!isCurrentlyVoted)
-        console.log('Save action:', { voteType, isCurrentlyVoted, newSavedState: !isCurrentlyVoted, userId: user.id, articleId: id })
         toast({
           title: isCurrentlyVoted ? "Unsaved" : "Saved",
           description: `Article ${isCurrentlyVoted ? 'removed from' : 'added to'} your saved articles.`,
@@ -373,15 +404,27 @@ export default function ArticleDetail() {
           {/* Article Actions */}
           <div className="flex items-center justify-between border-y border-border py-4">
             <div className="flex items-center gap-4">
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className={`${liked ? 'text-destructive' : 'text-muted-foreground'} hover:text-foreground`}
-                onClick={() => handleVote('like')}
-              >
-                <Heart className={`w-4 h-4 mr-1 ${liked ? 'fill-current' : ''}`} />
-                {article.upvotes || 0}
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className={`${upvoted ? 'text-success' : 'text-muted-foreground'} hover:text-success`}
+                  onClick={() => handleVote('upvote')}
+                >
+                  <ArrowUp className={`w-4 h-4 ${upvoted ? 'fill-current' : ''}`} />
+                </Button>
+                <span className="font-semibold text-sm min-w-[2rem] text-center">
+                  {(article.upvotes || 0) - (article.downvotes || 0)}
+                </span>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className={`${downvoted ? 'text-destructive' : 'text-muted-foreground'} hover:text-destructive`}
+                  onClick={() => handleVote('downvote')}
+                >
+                  <ArrowDown className={`w-4 h-4 ${downvoted ? 'fill-current' : ''}`} />
+                </Button>
+              </div>
               <Button 
                 variant="ghost" 
                 size="sm" 

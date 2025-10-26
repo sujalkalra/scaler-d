@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import { Link } from "react-router-dom"
 import { AppLayout } from "@/components/layout/AppLayout"
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute"
 import { useAuth } from "@/hooks/useAuth"
@@ -331,15 +332,17 @@ function ProfileContent() {
             ) : (
               <div className="space-y-4">
                 {savedArticles.slice(0, 5).map((article: any) => (
-                  <div key={article.id} className="flex items-center gap-3 p-3 rounded-lg border border-border hover:bg-muted/50 transition-colors">
-                    <div className="flex-1">
-                      <h4 className="font-medium text-sm">{article.title}</h4>
-                      <p className="text-xs text-muted-foreground mt-1">{article.company} • {article.read_time} min read</p>
+                  <Link key={article.id} to={`/articles/${article.id}`}>
+                    <div className="flex items-center gap-3 p-3 rounded-lg border border-border hover:bg-muted/50 transition-colors cursor-pointer">
+                      <div className="flex-1">
+                        <h4 className="font-medium text-sm">{article.title}</h4>
+                        <p className="text-xs text-muted-foreground mt-1">{article.company} • {article.read_time} min read</p>
+                      </div>
+                      <Badge variant="outline" className="text-xs">
+                        {article.difficulty}
+                      </Badge>
                     </div>
-                    <Badge variant="outline" className="text-xs">
-                      {article.difficulty}
-                    </Badge>
-                  </div>
+                  </Link>
                 ))}
                 {savedArticles.length > 5 && (
                   <p className="text-sm text-muted-foreground text-center pt-2">

@@ -14,30 +14,106 @@ interface RoadmapNodeProps {
   }
   isCompleted: boolean
   onToggleComplete: () => void
+  viewMode?: "grid" | "list"
 }
 
-export function RoadmapNode({ node, isCompleted, onToggleComplete }: RoadmapNodeProps) {
+export function RoadmapNode({ node, isCompleted, onToggleComplete, viewMode = "grid" }: RoadmapNodeProps) {
   const difficultyColors = {
     Beginner: "bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20",
     Intermediate: "bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 border-yellow-500/20",
     Advanced: "bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/20",
   }
 
+  if (viewMode === "list") {
+    return (
+      <div
+        onDoubleClick={onToggleComplete}
+        className={cn(
+          "group flex items-center gap-4 p-4 rounded-lg border bg-card transition-all duration-300 hover:shadow-md cursor-pointer",
+          isCompleted && "border-primary bg-primary/5"
+        )}
+      >
+        {/* Completion indicator */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation()
+            onToggleComplete()
+          }}
+          className="transition-transform hover:scale-110"
+          aria-label={isCompleted ? "Mark as incomplete" : "Mark as complete"}
+        >
+          {isCompleted ? (
+            <CheckCircle2 className="w-5 h-5 text-primary" />
+          ) : (
+            <Circle className="w-5 h-5 text-muted-foreground hover:text-primary" />
+          )}
+        </button>
+
+        {/* ID Badge */}
+        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+          <span className="text-sm font-bold text-primary">{node.id}</span>
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 min-w-0">
+          <h3 className="font-semibold text-base truncate">{node.title}</h3>
+          <div className="flex gap-2 mt-1">
+            <Badge variant="outline" className="text-xs">
+              {node.category}
+            </Badge>
+            <Badge 
+              variant="outline" 
+              className={cn("text-xs", difficultyColors[node.difficulty])}
+            >
+              {node.difficulty}
+            </Badge>
+          </div>
+        </div>
+
+        {/* Learn More Button */}
+        <Button
+          variant="outline"
+          size="sm"
+          className="flex-shrink-0 group/btn"
+          asChild
+        >
+          <a 
+            href={node.url} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="flex items-center gap-2"
+            onClick={(e) => e.stopPropagation()}
+          >
+            Learn More
+            <ExternalLink className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
+          </a>
+        </Button>
+      </div>
+    )
+  }
+
   return (
     <Card 
+      onDoubleClick={onToggleComplete}
       className={cn(
-        "group hover:shadow-lg transition-all duration-300 hover:scale-105 relative overflow-hidden",
-        isCompleted && "border-primary bg-primary/5"
+        "group hover:shadow-lg transition-all duration-300 hover:scale-[1.02] relative overflow-hidden cursor-pointer",
+        isCompleted && "border-primary bg-primary/5 shadow-primary/10"
       )}
     >
+      {/* Decorative gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+      
       {/* Completion indicator */}
       <button
-        onClick={onToggleComplete}
+        onClick={(e) => {
+          e.stopPropagation()
+          onToggleComplete()
+        }}
         className="absolute top-3 right-3 z-10 transition-transform hover:scale-110"
         aria-label={isCompleted ? "Mark as incomplete" : "Mark as complete"}
       >
         {isCompleted ? (
-          <CheckCircle2 className="w-6 h-6 text-primary" />
+          <CheckCircle2 className="w-6 h-6 text-primary drop-shadow-sm" />
         ) : (
           <Circle className="w-6 h-6 text-muted-foreground hover:text-primary" />
         )}
@@ -45,9 +121,11 @@ export function RoadmapNode({ node, isCompleted, onToggleComplete }: RoadmapNode
 
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-2 pr-8">
-          <div className="text-3xl font-bold text-primary/20">{node.id}</div>
+          <div className="text-3xl font-bold text-primary/20 group-hover:text-primary/30 transition-colors">
+            {node.id}
+          </div>
         </div>
-        <CardTitle className="text-lg leading-tight mt-2">
+        <CardTitle className="text-lg leading-tight mt-2 group-hover:text-primary transition-colors">
           {node.title}
         </CardTitle>
       </CardHeader>
@@ -76,6 +154,7 @@ export function RoadmapNode({ node, isCompleted, onToggleComplete }: RoadmapNode
             target="_blank" 
             rel="noopener noreferrer"
             className="flex items-center justify-center gap-2"
+            onClick={(e) => e.stopPropagation()}
           >
             Learn More
             <ExternalLink className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />

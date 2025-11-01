@@ -212,6 +212,33 @@ export type Database = {
         }
         Relationships: []
       }
+      roadmap_progress: {
+        Row: {
+          completed: boolean
+          created_at: string
+          id: string
+          node_id: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed?: boolean
+          created_at?: string
+          id?: string
+          node_id: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed?: boolean
+          created_at?: string
+          id?: string
+          node_id?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       saved_articles: {
         Row: {
           article_id: string

@@ -1,23 +1,88 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { LayoutGrid, List } from "lucide-react"
 import { RoadmapNode } from "./RoadmapNode"
 import { roadmapData } from "./roadmapData"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
+import { useAuth } from "@/hooks/useAuth"
+import { supabase } from "@/integrations/supabase/client"
+import { toast } from "sonner"
 
 export function RoadmapTree() {
+  const { user } = useAuth()
   const [completedNodes, setCompletedNodes] = useState<Set<number>>(new Set())
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
+  const [loading, setLoading] = useState(true)
 
-  const toggleComplete = (id: number) => {
+  // Fetch progress from database
+  useEffect(() => {
+    const fetchProgress = async () => {
+      if (!user) {
+        setLoading(false)
+        return
+      }
+
+      const { data, error } = await supabase
+        .from("roadmap_progress")
+        .select("node_id, completed")
+        .eq("user_id", user.id)
+
+      if (error) {
+        console.error("Error fetching progress:", error)
+        toast.error("Failed to load your progress")
+      } else if (data) {
+        const completed = new Set(
+          data.filter(item => item.completed).map(item => item.node_id)
+        )
+        setCompletedNodes(completed)
+      }
+      setLoading(false)
+    }
+
+    fetchProgress()
+  }, [user])
+
+  const toggleComplete = async (id: number) => {
+    const wasCompleted = completedNodes.has(id)
+    
+    // Optimistically update UI
     setCompletedNodes(prev => {
       const newSet = new Set(prev)
-      if (newSet.has(id)) {
+      if (wasCompleted) {
         newSet.delete(id)
       } else {
         newSet.add(id)
       }
       return newSet
     })
+
+    // Save to database if user is logged in
+    if (user) {
+      const { error } = await supabase
+        .from("roadmap_progress")
+        .upsert(
+          {
+            user_id: user.id,
+            node_id: id,
+            completed: !wasCompleted
+          },
+          { onConflict: "user_id,node_id" }
+        )
+
+      if (error) {
+        console.error("Error saving progress:", error)
+        toast.error("Failed to save progress")
+        // Revert on error
+        setCompletedNodes(prev => {
+          const newSet = new Set(prev)
+          if (wasCompleted) {
+            newSet.add(id)
+          } else {
+            newSet.delete(id)
+          }
+          return newSet
+        })
+      }
+    }
   }
 
   return (
@@ -51,19 +116,25 @@ export function RoadmapTree() {
       </div>
 
       {/* Roadmap Layout */}
-      <div className={viewMode === "grid" 
-        ? "grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" 
-        : "flex flex-col gap-3"}>
-        {roadmapData.map((node) => (
-          <RoadmapNode
-            key={node.id}
-            node={node}
-            isCompleted={completedNodes.has(node.id)}
-            onToggleComplete={() => toggleComplete(node.id)}
-            viewMode={viewMode}
-          />
-        ))}
-      </div>
+      {loading ? (
+        <div className="text-center py-12 text-muted-foreground">
+          Loading your progress...
+        </div>
+      ) : (
+        <div className={viewMode === "grid" 
+          ? "grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" 
+          : "flex flex-col gap-3"}>
+          {roadmapData.map((node) => (
+            <RoadmapNode
+              key={node.id}
+              node={node}
+              isCompleted={completedNodes.has(node.id)}
+              onToggleComplete={() => toggleComplete(node.id)}
+              viewMode={viewMode}
+            />
+          ))}
+        </div>
+      )}
 
       {/* Legend */}
       <div className="mt-12 flex justify-center gap-6 flex-wrap text-sm">

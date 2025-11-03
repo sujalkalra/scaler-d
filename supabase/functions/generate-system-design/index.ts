@@ -222,14 +222,80 @@ Show realistic data flow with numbered steps and arrows. Make it comprehensive y
 
     if (logoResponse.ok) {
       const logoData = await logoResponse.json();
-      logoUrl = logoData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+      const logoBase64 = logoData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+      
+      if (logoBase64 && user) {
+        try {
+          // Convert base64 to blob
+          const base64Data = logoBase64.split(',')[1];
+          const binaryData = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
+          const fileName = `${user.id}/${Date.now()}-logo.png`;
+          
+          // Upload to storage
+          const supabaseClient = createClient(
+            Deno.env.get('SUPABASE_URL') ?? '',
+            Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+          );
+          
+          const { data: uploadData, error: uploadError } = await supabaseClient
+            .storage
+            .from('article-images')
+            .upload(fileName, binaryData, {
+              contentType: 'image/png',
+              upsert: false
+            });
+          
+          if (!uploadError && uploadData) {
+            const { data: { publicUrl } } = supabaseClient
+              .storage
+              .from('article-images')
+              .getPublicUrl(fileName);
+            logoUrl = publicUrl;
+          }
+        } catch (error) {
+          console.error("Logo upload failed:", error);
+        }
+      }
     } else {
       console.error("Logo generation failed");
     }
 
     if (diagramResponse.ok) {
       const diagramData = await diagramResponse.json();
-      diagramUrl = diagramData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+      const diagramBase64 = diagramData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+      
+      if (diagramBase64 && user) {
+        try {
+          // Convert base64 to blob
+          const base64Data = diagramBase64.split(',')[1];
+          const binaryData = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
+          const fileName = `${user.id}/${Date.now()}-diagram.png`;
+          
+          // Upload to storage
+          const supabaseClient = createClient(
+            Deno.env.get('SUPABASE_URL') ?? '',
+            Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+          );
+          
+          const { data: uploadData, error: uploadError } = await supabaseClient
+            .storage
+            .from('article-images')
+            .upload(fileName, binaryData, {
+              contentType: 'image/png',
+              upsert: false
+            });
+          
+          if (!uploadError && uploadData) {
+            const { data: { publicUrl } } = supabaseClient
+              .storage
+              .from('article-images')
+              .getPublicUrl(fileName);
+            diagramUrl = publicUrl;
+          }
+        } catch (error) {
+          console.error("Diagram upload failed:", error);
+        }
+      }
     } else {
       console.error("Diagram generation failed");
     }

@@ -38,11 +38,15 @@ const companyFilters = ["Netflix", "YouTube", "Spotify", "Instagram", "Uber", "A
 export default function Articles() {
   const [articles, setArticles] = useState<Article[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
   const [selectedFilter, setSelectedFilter] = useState("all")
   const [selectedCompany, setSelectedCompany] = useState<string | null>(null)
   const [savedArticleIds, setSavedArticleIds] = useState<Set<string>>(new Set())
+  const [page, setPage] = useState(0)
+  const [hasMore, setHasMore] = useState(true)
   const { toast } = useToast()
   const { user } = useAuth()
+  const ARTICLES_PER_PAGE = 12
 
   useEffect(() => {
     fetchArticles()
@@ -51,16 +55,27 @@ export default function Articles() {
     }
   }, [user])
 
-  const fetchArticles = async () => {
+  const fetchArticles = async (loadMore = false) => {
     try {
-      const { data, error } = await supabase
+      const from = loadMore ? articles.length : 0
+      const to = from + ARTICLES_PER_PAGE - 1
+
+      const { data, error, count } = await supabase
         .from('articles')
-        .select('id, title, excerpt, company, company_image, read_time, created_at, upvotes, downvotes, views, tags, difficulty, is_featured')
+        .select('id, title, excerpt, company, company_image, read_time, created_at, upvotes, downvotes, views, tags, difficulty, is_featured', { count: 'exact' })
         .eq('published', true)
         .order('created_at', { ascending: false })
+        .range(from, to)
 
       if (error) throw error
-      setArticles(data || [])
+      
+      const newArticles = data || []
+      setArticles(loadMore ? [...articles, ...newArticles] : newArticles)
+      setHasMore((count || 0) > from + newArticles.length)
+      
+      if (loadMore) {
+        setPage(page + 1)
+      }
     } catch (error: any) {
       toast({
         title: "Error",
@@ -69,7 +84,13 @@ export default function Articles() {
       })
     } finally {
       setLoading(false)
+      setLoadingMore(false)
     }
+  }
+
+  const handleLoadMore = () => {
+    setLoadingMore(true)
+    fetchArticles(true)
   }
 
   const fetchSavedArticles = async () => {
@@ -363,11 +384,18 @@ export default function Articles() {
       )}
 
       {/* Load More */}
-      <div className="flex justify-center mt-12">
-        <Button variant="outline" size="lg" onClick={() => toast({ title: "Loading...", description: "Fetching more articles (demo)" })}>
-          Load More Articles
-        </Button>
+      {hasMore && filteredArticles.length > 0 && (
+        <div className="flex justify-center mt-12">
+          <Button 
+            variant="outline" 
+            size="lg" 
+            onClick={handleLoadMore}
+            disabled={loadingMore}
+          >
+            {loadingMore ? "Loading..." : "Load More Articles"}
+          </Button>
         </div>
+      )}
       </div>
     </AppLayout>
   )

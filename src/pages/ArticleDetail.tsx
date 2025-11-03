@@ -510,9 +510,13 @@ export default function ArticleDetail() {
               img: ({node, ...props}) => (
                 <img 
                   {...props} 
-                  className="rounded-lg shadow-lg my-8 w-full" 
+                  className="rounded-lg shadow-lg my-8 w-full max-h-[600px] object-contain bg-muted" 
                   loading="lazy"
                   alt={props.alt || 'Article image'}
+                  onError={(e) => {
+                    console.error('Image failed to load:', props.src?.substring(0, 100));
+                    e.currentTarget.style.display = 'none';
+                  }}
                 />
               ),
               h1: ({node, ...props}) => <h1 className="text-3xl font-bold mt-8 mb-4" {...props} />,

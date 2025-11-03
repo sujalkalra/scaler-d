@@ -55,7 +55,7 @@ export default function Articles() {
     try {
       const { data, error } = await supabase
         .from('articles')
-        .select('*')
+        .select('id, title, excerpt, company, company_image, read_time, created_at, upvotes, downvotes, views, tags, difficulty, is_featured')
         .eq('published', true)
         .order('created_at', { ascending: false })
 

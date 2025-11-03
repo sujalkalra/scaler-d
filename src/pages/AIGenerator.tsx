@@ -66,10 +66,24 @@ export default function AIGenerator() {
     setIsGenerating(true)
     
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        toast({
+          title: "Authentication required",
+          description: "Please sign in to use the AI generator.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const { data, error } = await supabase.functions.invoke('generate-system-design', {
         body: { 
           title: prompt,
           company: company.trim() || undefined
+        },
+        headers: {
+          Authorization: `Bearer ${session.access_token}`
         }
       })
 

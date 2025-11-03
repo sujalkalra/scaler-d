@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client"
 import { useAuth } from "@/hooks/useAuth"
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import { z } from 'zod'
 
 interface Article {
   id: string
@@ -289,16 +290,22 @@ export default function ArticleDetail() {
       return
     }
 
-    if (!newComment.trim()) return
+    // Input validation
+    const commentSchema = z.object({
+      content: z.string().trim().min(1, "Comment cannot be empty").max(5000, "Comment must be less than 5000 characters")
+    });
 
-    setSubmittingComment(true)
     try {
+      const validated = commentSchema.parse({ content: newComment });
+      
+      setSubmittingComment(true)
+      
       await supabase
         .from('comments')
         .insert({
           article_id: id,
           user_id: user.id,
-          content: newComment.trim()
+          content: validated.content
         })
 
       setNewComment("")
@@ -308,11 +315,19 @@ export default function ArticleDetail() {
         description: "Your comment has been posted successfully.",
       })
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: "Failed to post comment. Please try again.",
-        variant: "destructive",
-      })
+      if (error instanceof z.ZodError) {
+        toast({
+          title: "Validation Error",
+          description: error.errors[0].message,
+          variant: "destructive",
+        })
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to post comment. Please try again.",
+          variant: "destructive",
+        })
+      }
     } finally {
       setSubmittingComment(false)
     }

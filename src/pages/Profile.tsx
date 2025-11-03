@@ -15,6 +15,7 @@ import { Separator } from "@/components/ui/separator"
 import { useToast } from "@/hooks/use-toast"
 import { User, Mail, Calendar, Edit3, Save, BookOpen, Palette, Heart } from "lucide-react"
 import { AvatarUpload } from "@/components/profile/AvatarUpload"
+import { z } from "zod"
 
 interface Profile {
   id: string
@@ -118,13 +119,30 @@ function ProfileContent() {
   const handleSave = async () => {
     if (!user) return
 
+    // Input validation
+    const profileSchema = z.object({
+      username: z.string()
+        .trim()
+        .min(3, "Username must be at least 3 characters")
+        .max(30, "Username must be less than 30 characters")
+        .regex(/^[a-zA-Z0-9_-]+$/, "Username can only contain letters, numbers, underscores, and hyphens"),
+      full_name: z.string()
+        .trim()
+        .max(100, "Full name must be less than 100 characters"),
+      bio: z.string()
+        .trim()
+        .max(500, "Bio must be less than 500 characters")
+    });
+
     try {
+      const validated = profileSchema.parse(formData);
+
       const { data, error } = await supabase
         .from("profiles")
         .update({
-          username: formData.username,
-          full_name: formData.full_name,
-          bio: formData.bio
+          username: validated.username,
+          full_name: validated.full_name,
+          bio: validated.bio
         })
         .eq('user_id', user.id)
         .select()
@@ -139,11 +157,19 @@ function ProfileContent() {
         description: "Your profile has been successfully updated.",
       })
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      })
+      if (error instanceof z.ZodError) {
+        toast({
+          title: "Validation Error",
+          description: error.errors[0].message,
+          variant: "destructive",
+        })
+      } else {
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
+        })
+      }
     }
   }
 

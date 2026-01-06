@@ -11,6 +11,7 @@ import FeaturedArticles from "./pages/FeaturedArticles";
 import Practice from "./pages/Practice";
 import AIGenerator from "./pages/AIGenerator";
 import Roadmap from "./pages/Roadmap";
+import RoadmapArticle from "./pages/RoadmapArticle";
 import Profile from "./pages/Profile";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
@@ -37,6 +38,7 @@ function AppRoutes() {
       <Route path="/practice" element={<Practice />} />
       <Route path="/ai-generator" element={<AIGenerator />} />
       <Route path="/roadmap" element={<Roadmap />} />
+      <Route path="/roadmap/:slug" element={<RoadmapArticle />} />
       <Route path="/profile" element={<Profile />} />
       <Route 
         path="/auth" 

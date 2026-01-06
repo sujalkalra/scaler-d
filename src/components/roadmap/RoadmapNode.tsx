@@ -1,4 +1,5 @@
-import { ExternalLink, CheckCircle2, Circle } from "lucide-react"
+import { Link } from "react-router-dom"
+import { CheckCircle2, Circle, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -8,7 +9,7 @@ interface RoadmapNodeProps {
   node: {
     id: number
     title: string
-    url: string
+    slug: string
     category: string
     difficulty: "Beginner" | "Intermediate" | "Advanced"
   }
@@ -33,60 +34,31 @@ export function RoadmapNode({ node, isCompleted, onToggleComplete, viewMode = "g
           isCompleted && "border-primary bg-primary/5"
         )}
       >
-        {/* Completion indicator */}
         <button
-          onClick={(e) => {
-            e.stopPropagation()
-            onToggleComplete()
-          }}
+          onClick={(e) => { e.stopPropagation(); onToggleComplete() }}
           className="transition-transform hover:scale-110"
           aria-label={isCompleted ? "Mark as incomplete" : "Mark as complete"}
         >
-          {isCompleted ? (
-            <CheckCircle2 className="w-5 h-5 text-primary" />
-          ) : (
-            <Circle className="w-5 h-5 text-muted-foreground hover:text-primary" />
-          )}
+          {isCompleted ? <CheckCircle2 className="w-5 h-5 text-primary" /> : <Circle className="w-5 h-5 text-muted-foreground hover:text-primary" />}
         </button>
 
-        {/* ID Badge */}
         <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
           <span className="text-sm font-bold text-primary">{node.id}</span>
         </div>
 
-        {/* Content */}
         <div className="flex-1 min-w-0">
           <h3 className="font-semibold text-base truncate">{node.title}</h3>
           <div className="flex gap-2 mt-1">
-            <Badge variant="outline" className="text-xs">
-              {node.category}
-            </Badge>
-            <Badge 
-              variant="outline" 
-              className={cn("text-xs", difficultyColors[node.difficulty])}
-            >
-              {node.difficulty}
-            </Badge>
+            <Badge variant="outline" className="text-xs">{node.category}</Badge>
+            <Badge variant="outline" className={cn("text-xs", difficultyColors[node.difficulty])}>{node.difficulty}</Badge>
           </div>
         </div>
 
-        {/* Learn More Button */}
-        <Button
-          variant="outline"
-          size="sm"
-          className="flex-shrink-0 group/btn"
-          asChild
-        >
-          <a 
-            href={node.url} 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="flex items-center gap-2"
-            onClick={(e) => e.stopPropagation()}
-          >
+        <Button variant="outline" size="sm" className="flex-shrink-0 group/btn" asChild>
+          <Link to={`/roadmap/${node.slug}`} className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
             Learn More
-            <ExternalLink className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
-          </a>
+            <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
+          </Link>
         </Button>
       </div>
     )
@@ -100,66 +72,32 @@ export function RoadmapNode({ node, isCompleted, onToggleComplete, viewMode = "g
         isCompleted && "border-primary bg-primary/5 shadow-primary/10"
       )}
     >
-      {/* Decorative gradient overlay */}
-      <div 
-        className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" 
-      />
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
       
-      {/* Completion indicator */}
       <button
-        onClick={(e) => {
-          e.stopPropagation()
-          onToggleComplete()
-        }}
+        onClick={(e) => { e.stopPropagation(); onToggleComplete() }}
         className="absolute top-3 right-3 z-10 transition-transform hover:scale-110"
         aria-label={isCompleted ? "Mark as incomplete" : "Mark as complete"}
       >
-        {isCompleted ? (
-          <CheckCircle2 className="w-6 h-6 text-primary drop-shadow-sm" />
-        ) : (
-          <Circle className="w-6 h-6 text-muted-foreground hover:text-primary" />
-        )}
+        {isCompleted ? <CheckCircle2 className="w-6 h-6 text-primary drop-shadow-sm" /> : <Circle className="w-6 h-6 text-muted-foreground hover:text-primary" />}
       </button>
 
       <CardHeader className="pb-3">
-        <div className="flex items-start justify-between gap-2 pr-8">
-          <div className="text-3xl font-bold text-primary/20 group-hover:text-primary/30 transition-colors">
-            {node.id}
-          </div>
-        </div>
-        <CardTitle className="text-lg leading-tight mt-2 group-hover:text-primary transition-colors">
-          {node.title}
-        </CardTitle>
+        <div className="text-3xl font-bold text-primary/20 group-hover:text-primary/30 transition-colors">{node.id}</div>
+        <CardTitle className="text-lg leading-tight mt-2 group-hover:text-primary transition-colors">{node.title}</CardTitle>
       </CardHeader>
 
       <CardContent className="space-y-3">
         <div className="flex gap-2 flex-wrap">
-          <Badge variant="outline" className="text-xs">
-            {node.category}
-          </Badge>
-          <Badge 
-            variant="outline" 
-            className={cn("text-xs", difficultyColors[node.difficulty])}
-          >
-            {node.difficulty}
-          </Badge>
+          <Badge variant="outline" className="text-xs">{node.category}</Badge>
+          <Badge variant="outline" className={cn("text-xs", difficultyColors[node.difficulty])}>{node.difficulty}</Badge>
         </div>
 
-        <Button
-          variant="outline"
-          size="sm"
-          className="w-full group/btn relative z-10"
-          asChild
-        >
-          <a 
-            href={node.url} 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2"
-          >
+        <Button variant="outline" size="sm" className="w-full group/btn relative z-10" asChild>
+          <Link to={`/roadmap/${node.slug}`} className="flex items-center justify-center gap-2">
             Learn More
-            <ExternalLink className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
-          </a>
+            <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
+          </Link>
         </Button>
       </CardContent>
     </Card>

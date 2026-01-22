@@ -12,6 +12,7 @@ export interface RoadmapArticle {
   tags: string[]
   excerpt: string
   content: string // Markdown content
+  sourceUrl?: string // Citation link
   coverImage?: string
 }
 

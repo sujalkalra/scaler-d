@@ -12,10 +12,26 @@ import { useToast } from '@/hooks/use-toast'
 import { useAuth } from '@/hooks/useAuth'
 import { supabase } from '@/integrations/supabase/client'
 
+// Helper to generate valid fractional index for Excalidraw
+function generateFractionalIndex(existingElements: any[]): string {
+  // Excalidraw uses fractional indexing - generate a simple incrementing key
+  const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+  const maxIndex = existingElements.reduce((max, el) => {
+    if (!el.index) return max
+    return el.index > max ? el.index : max
+  }, 'a0')
+  
+  // Simple approach: append a character to create a larger index
+  return maxIndex + chars[Math.floor(Math.random() * 26)]
+}
+
 // Helper to create Excalidraw element
-function createExcalidrawRect(id: string, x: number, y: number, color: string, label: string): any[] {
+function createExcalidrawRect(id: string, x: number, y: number, color: string, label: string, existingElements: any[] = []): any[] {
   const nodeWidth = 140
   const nodeHeight = 80
+  
+  const baseIndex = generateFractionalIndex(existingElements)
+  const textIndex = baseIndex + 'V' // Ensure text comes after rect
   
   const rect: any = {
     id,
@@ -34,13 +50,13 @@ function createExcalidrawRect(id: string, x: number, y: number, color: string, l
     opacity: 100,
     groupIds: [],
     frameId: null,
-    index: `a${Date.now()}`,
+    index: baseIndex,
     roundness: { type: 3 },
     seed: Math.floor(Math.random() * 100000),
     version: 1,
     versionNonce: Math.floor(Math.random() * 100000),
     isDeleted: false,
-    boundElements: [],
+    boundElements: [{ id: `${id}-label`, type: 'text' }],
     updated: Date.now(),
     link: null,
     locked: false,
@@ -52,8 +68,8 @@ function createExcalidrawRect(id: string, x: number, y: number, color: string, l
   const text: any = {
     id: `${id}-label`,
     type: 'text',
-    x: x + 10,
-    y: y + nodeHeight / 2 - 10,
+    x: x + nodeWidth / 2,
+    y: y + nodeHeight / 2,
     width: nodeWidth - 20,
     height: 20,
     angle: 0,
@@ -66,7 +82,7 @@ function createExcalidrawRect(id: string, x: number, y: number, color: string, l
     opacity: 100,
     groupIds: [],
     frameId: null,
-    index: `a${Date.now() + 1}`,
+    index: textIndex,
     roundness: null,
     seed: Math.floor(Math.random() * 100000),
     version: 1,
@@ -126,7 +142,7 @@ export default function DesignLab() {
     
     // Create Excalidraw element
     const elements = excalidrawAPI.getSceneElements()
-    const [rect, text] = createExcalidrawRect(newNode.id, newNode.position.x, newNode.position.y, nodeDef.color, newNode.label)
+    const [rect, text] = createExcalidrawRect(newNode.id, newNode.position.x, newNode.position.y, nodeDef.color, newNode.label, elements)
 
     excalidrawAPI.updateScene({
       elements: [...elements, rect, text],
@@ -158,7 +174,7 @@ export default function DesignLab() {
       
       // Create Excalidraw element at drop position
       const elements = excalidrawAPI.getSceneElements()
-      const [newRect, newText] = createExcalidrawRect(newNode.id, canvasX - 70, canvasY - 40, nodeDef.color, newNode.label)
+      const [newRect, newText] = createExcalidrawRect(newNode.id, canvasX - 70, canvasY - 40, nodeDef.color, newNode.label, elements)
 
       excalidrawAPI.updateScene({
         elements: [...elements, newRect, newText],
@@ -184,16 +200,17 @@ export default function DesignLab() {
     
     template.graph.nodes.forEach(node => {
       const nodeDef = nodeDefinitions[node.type]
-      const [rect, text] = createExcalidrawRect(node.id, node.position.x, node.position.y, nodeDef.color, node.label)
+      const [rect, text] = createExcalidrawRect(node.id, node.position.x, node.position.y, nodeDef.color, node.label, elements)
       elements.push(rect, text)
     })
     
     // Add arrows for edges
-    template.graph.edges.forEach(edge => {
+    template.graph.edges.forEach((edge, idx) => {
       const fromNode = template.graph.nodes.find(n => n.id === edge.from)
       const toNode = template.graph.nodes.find(n => n.id === edge.to)
       
       if (fromNode && toNode) {
+        const arrowIndex = generateFractionalIndex(elements)
         elements.push({
           id: edge.id,
           type: 'arrow',
@@ -211,7 +228,7 @@ export default function DesignLab() {
           opacity: 100,
           groupIds: [],
           frameId: null,
-          index: `a${Date.now() + 2}`,
+          index: arrowIndex,
           roundness: { type: 2 },
           seed: Math.floor(Math.random() * 100000),
           version: 1,

@@ -244,6 +244,23 @@ export default function RoadmapArticle() {
             <ReactMarkdown remarkPlugins={[remarkGfm]}>{article.content}</ReactMarkdown>
           </div>
 
+          {/* Source Citation */}
+          {article.sourceUrl && (
+            <div className="mt-8 p-4 rounded-lg bg-muted/50 border border-border">
+              <p className="text-sm text-muted-foreground">
+                📖 Original article:{" "}
+                <a 
+                  href={article.sourceUrl} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline"
+                >
+                  {article.sourceUrl}
+                </a>
+              </p>
+            </div>
+          )}
+
           {/* Mark Complete CTA */}
           <div className="mt-12 p-6 rounded-2xl bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border border-primary/20">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">

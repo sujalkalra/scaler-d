@@ -1,8 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { Excalidraw, exportToBlob, exportToSvg, serializeAsJSON } from '@excalidraw/excalidraw'
 import { useDesignLabStore } from '../store/useDesignLabStore'
-import { nodeDefinitions } from '../data/nodeDefinitions'
-import { NodeType, SemanticNode } from '../types'
 import { useToast } from '@/hooks/use-toast'
 
 interface ExcalidrawCanvasProps {
@@ -11,97 +9,13 @@ interface ExcalidrawCanvasProps {
   onDrop: (e: React.DragEvent) => void
 }
 
-// Create Excalidraw element for a system design node
-function createNodeElement(
-  node: any,
-  nodeDef: any
-): any[] {
-  const width = 140
-  const height = 80
-  
-  // Create a rectangle element
-  const rect: ExcalidrawElement = {
-    id: node.id,
-    type: 'rectangle',
-    x: node.position.x,
-    y: node.position.y,
-    width,
-    height,
-    angle: 0,
-    strokeColor: nodeDef.color,
-    backgroundColor: nodeDef.color + '20',
-    fillStyle: 'solid',
-    strokeWidth: 2,
-    strokeStyle: 'solid',
-    roughness: 0,
-    opacity: 100,
-    groupIds: [],
-    frameId: null,
-    index: 'a0' as any,
-    roundness: { type: 3 },
-    seed: Math.floor(Math.random() * 100000),
-    version: 1,
-    versionNonce: Math.floor(Math.random() * 100000),
-    isDeleted: false,
-    boundElements: null,
-    updated: Date.now(),
-    link: null,
-    locked: false,
-    customData: {
-      nodeType: node.type,
-      semanticId: node.id,
-    },
-  } as ExcalidrawElement
-
-  // Create a text label
-  const text: ExcalidrawElement = {
-    id: `${node.id}-label`,
-    type: 'text',
-    x: node.position.x + width / 2,
-    y: node.position.y + height / 2,
-    width: width - 20,
-    height: 20,
-    angle: 0,
-    strokeColor: nodeDef.color,
-    backgroundColor: 'transparent',
-    fillStyle: 'solid',
-    strokeWidth: 1,
-    strokeStyle: 'solid',
-    roughness: 0,
-    opacity: 100,
-    groupIds: [],
-    frameId: null,
-    index: 'a1' as any,
-    roundness: null,
-    seed: Math.floor(Math.random() * 100000),
-    version: 1,
-    versionNonce: Math.floor(Math.random() * 100000),
-    isDeleted: false,
-    boundElements: null,
-    updated: Date.now(),
-    link: null,
-    locked: false,
-    text: node.label,
-    fontSize: 14,
-    fontFamily: 1,
-    textAlign: 'center',
-    verticalAlign: 'middle',
-    containerId: node.id,
-    originalText: node.label,
-    autoResize: true,
-    lineHeight: 1.25,
-  } as ExcalidrawElement
-
-  return [rect, text]
-}
-
 export function ExcalidrawCanvas({ 
   excalidrawAPI, 
   setExcalidrawAPI,
   onDrop 
 }: ExcalidrawCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null)
-  const { graph, selectNode, updateNodePosition, addEdge, markDirty } = useDesignLabStore()
+  const { graph, updateNodePosition, addEdge } = useDesignLabStore()
   const { toast } = useToast()
   const [theme, setTheme] = useState<'light' | 'dark'>('dark')
   
@@ -124,9 +38,9 @@ export function ExcalidrawCanvas({
   }, [])
 
   // Handle element changes
-  const handleChange = useCallback((elements: readonly ExcalidrawElement[]) => {
+  const handleChange = useCallback((elements: readonly any[]) => {
     // Sync positions back to store
-    elements.forEach(el => {
+    elements.forEach((el: any) => {
       if (el.type === 'rectangle' && el.customData?.semanticId) {
         const node = graph.nodes.find(n => n.id === el.customData?.semanticId)
         if (node && (node.position.x !== el.x || node.position.y !== el.y)) {
@@ -163,16 +77,6 @@ export function ExcalidrawCanvas({
     })
   }, [graph.nodes, graph.edges, updateNodePosition, addEdge, toast])
 
-  // Handle pointer down for selection
-  const handlePointerDown = useCallback((
-    activeTool: any,
-    pointerDownState: any,
-    event: React.PointerEvent<HTMLElement>
-  ) => {
-    const target = event.target as HTMLElement
-    // Selection handled via onChange
-  }, [])
-
   return (
     <div 
       ref={containerRef}
@@ -181,7 +85,7 @@ export function ExcalidrawCanvas({
       onDragOver={(e) => e.preventDefault()}
     >
       <Excalidraw
-        excalidrawAPI={(api) => setExcalidrawAPI(api)}
+        excalidrawAPI={(api: any) => setExcalidrawAPI(api)}
         theme={theme}
         onChange={handleChange}
         UIOptions={{
@@ -203,7 +107,7 @@ export function ExcalidrawCanvas({
 }
 
 // Export utilities
-export async function exportToPNG(api: ExcalidrawImperativeAPI): Promise<Blob> {
+export async function exportToPNG(api: any): Promise<Blob> {
   const elements = api.getSceneElements()
   const appState = api.getAppState()
   
@@ -218,7 +122,7 @@ export async function exportToPNG(api: ExcalidrawImperativeAPI): Promise<Blob> {
   })
 }
 
-export async function exportAsSVG(api: ExcalidrawImperativeAPI): Promise<SVGSVGElement> {
+export async function exportAsSVG(api: any): Promise<SVGSVGElement> {
   const elements = api.getSceneElements()
   const appState = api.getAppState()
   
@@ -232,7 +136,7 @@ export async function exportAsSVG(api: ExcalidrawImperativeAPI): Promise<SVGSVGE
   })
 }
 
-export function exportAsJSON(api: ExcalidrawImperativeAPI): string {
+export function exportAsJSON(api: any): string {
   const elements = api.getSceneElements()
   const appState = api.getAppState()
   const files = api.getFiles()

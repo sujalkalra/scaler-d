@@ -1,5 +1,4 @@
-import { useState, useCallback, useEffect } from 'react'
-import type { ExcalidrawImperativeAPI, ExcalidrawElement } from '@excalidraw/excalidraw/types/types'
+import { useState, useCallback } from 'react'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { ComponentSidebar } from '../components/ComponentSidebar'
 import { CanvasHeader } from '../components/CanvasHeader'
@@ -13,8 +12,86 @@ import { useToast } from '@/hooks/use-toast'
 import { useAuth } from '@/hooks/useAuth'
 import { supabase } from '@/integrations/supabase/client'
 
+// Helper to create Excalidraw element
+function createExcalidrawRect(id: string, x: number, y: number, color: string, label: string): any[] {
+  const nodeWidth = 140
+  const nodeHeight = 80
+  
+  const rect: any = {
+    id,
+    type: 'rectangle',
+    x,
+    y,
+    width: nodeWidth,
+    height: nodeHeight,
+    angle: 0,
+    strokeColor: color,
+    backgroundColor: color + '20',
+    fillStyle: 'solid',
+    strokeWidth: 2,
+    strokeStyle: 'solid',
+    roughness: 0,
+    opacity: 100,
+    groupIds: [],
+    frameId: null,
+    index: `a${Date.now()}`,
+    roundness: { type: 3 },
+    seed: Math.floor(Math.random() * 100000),
+    version: 1,
+    versionNonce: Math.floor(Math.random() * 100000),
+    isDeleted: false,
+    boundElements: [],
+    updated: Date.now(),
+    link: null,
+    locked: false,
+    customData: {
+      semanticId: id,
+    },
+  }
+
+  const text: any = {
+    id: `${id}-label`,
+    type: 'text',
+    x: x + 10,
+    y: y + nodeHeight / 2 - 10,
+    width: nodeWidth - 20,
+    height: 20,
+    angle: 0,
+    strokeColor: color,
+    backgroundColor: 'transparent',
+    fillStyle: 'solid',
+    strokeWidth: 1,
+    strokeStyle: 'solid',
+    roughness: 0,
+    opacity: 100,
+    groupIds: [],
+    frameId: null,
+    index: `a${Date.now() + 1}`,
+    roundness: null,
+    seed: Math.floor(Math.random() * 100000),
+    version: 1,
+    versionNonce: Math.floor(Math.random() * 100000),
+    isDeleted: false,
+    boundElements: null,
+    updated: Date.now(),
+    link: null,
+    locked: false,
+    text: label,
+    fontSize: 14,
+    fontFamily: 1,
+    textAlign: 'center',
+    verticalAlign: 'middle',
+    containerId: id,
+    originalText: label,
+    autoResize: true,
+    lineHeight: 1.25,
+  }
+
+  return [rect, text]
+}
+
 export default function DesignLab() {
-  const [excalidrawAPI, setExcalidrawAPI] = useState<ExcalidrawImperativeAPI | null>(null)
+  const [excalidrawAPI, setExcalidrawAPI] = useState<any>(null)
   const [isSaving, setIsSaving] = useState(false)
   const { toast } = useToast()
   const { user } = useAuth()
@@ -27,7 +104,6 @@ export default function DesignLab() {
     loadGraph, 
     clearGraph, 
     markClean,
-    isDirty,
   } = useDesignLabStore()
 
   // Add node to canvas
@@ -50,83 +126,10 @@ export default function DesignLab() {
     
     // Create Excalidraw element
     const elements = excalidrawAPI.getSceneElements()
-    
-    const nodeWidth = 140
-    const nodeHeight = 80
-    
-    const newRect: ExcalidrawElement = {
-      id: newNode.id,
-      type: 'rectangle',
-      x: newNode.position.x,
-      y: newNode.position.y,
-      width: nodeWidth,
-      height: nodeHeight,
-      angle: 0,
-      strokeColor: nodeDef.color,
-      backgroundColor: nodeDef.color + '20',
-      fillStyle: 'solid',
-      strokeWidth: 2,
-      strokeStyle: 'solid',
-      roughness: 0,
-      opacity: 100,
-      groupIds: [],
-      frameId: null,
-      index: `a${Date.now()}` as any,
-      roundness: { type: 3 },
-      seed: Math.floor(Math.random() * 100000),
-      version: 1,
-      versionNonce: Math.floor(Math.random() * 100000),
-      isDeleted: false,
-      boundElements: [],
-      updated: Date.now(),
-      link: null,
-      locked: false,
-      customData: {
-        nodeType: type,
-        semanticId: newNode.id,
-      },
-    } as ExcalidrawElement
-
-    const newText: ExcalidrawElement = {
-      id: `${newNode.id}-label`,
-      type: 'text',
-      x: newNode.position.x + 10,
-      y: newNode.position.y + nodeHeight / 2 - 10,
-      width: nodeWidth - 20,
-      height: 20,
-      angle: 0,
-      strokeColor: nodeDef.color,
-      backgroundColor: 'transparent',
-      fillStyle: 'solid',
-      strokeWidth: 1,
-      strokeStyle: 'solid',
-      roughness: 0,
-      opacity: 100,
-      groupIds: [],
-      frameId: null,
-      index: `a${Date.now() + 1}` as any,
-      roundness: null,
-      seed: Math.floor(Math.random() * 100000),
-      version: 1,
-      versionNonce: Math.floor(Math.random() * 100000),
-      isDeleted: false,
-      boundElements: null,
-      updated: Date.now(),
-      link: null,
-      locked: false,
-      text: newNode.label,
-      fontSize: 14,
-      fontFamily: 1,
-      textAlign: 'center',
-      verticalAlign: 'middle',
-      containerId: newNode.id,
-      originalText: newNode.label,
-      autoResize: true,
-      lineHeight: 1.25,
-    } as ExcalidrawElement
+    const [rect, text] = createExcalidrawRect(newNode.id, newNode.position.x, newNode.position.y, nodeDef.color, newNode.label)
 
     excalidrawAPI.updateScene({
-      elements: [...elements, newRect, newText],
+      elements: [...elements, rect, text],
     })
 
     toast({
@@ -155,79 +158,7 @@ export default function DesignLab() {
       
       // Create Excalidraw element at drop position
       const elements = excalidrawAPI.getSceneElements()
-      const nodeWidth = 140
-      const nodeHeight = 80
-      
-      const newRect: ExcalidrawElement = {
-        id: newNode.id,
-        type: 'rectangle',
-        x: canvasX - 70,
-        y: canvasY - 40,
-        width: nodeWidth,
-        height: nodeHeight,
-        angle: 0,
-        strokeColor: nodeDef.color,
-        backgroundColor: nodeDef.color + '20',
-        fillStyle: 'solid',
-        strokeWidth: 2,
-        strokeStyle: 'solid',
-        roughness: 0,
-        opacity: 100,
-        groupIds: [],
-        frameId: null,
-        index: `a${Date.now()}` as any,
-        roundness: { type: 3 },
-        seed: Math.floor(Math.random() * 100000),
-        version: 1,
-        versionNonce: Math.floor(Math.random() * 100000),
-        isDeleted: false,
-        boundElements: [],
-        updated: Date.now(),
-        link: null,
-        locked: false,
-        customData: {
-          nodeType,
-          semanticId: newNode.id,
-        },
-      } as ExcalidrawElement
-
-      const newText: ExcalidrawElement = {
-        id: `${newNode.id}-label`,
-        type: 'text',
-        x: canvasX - 60,
-        y: canvasY - 10,
-        width: nodeWidth - 20,
-        height: 20,
-        angle: 0,
-        strokeColor: nodeDef.color,
-        backgroundColor: 'transparent',
-        fillStyle: 'solid',
-        strokeWidth: 1,
-        strokeStyle: 'solid',
-        roughness: 0,
-        opacity: 100,
-        groupIds: [],
-        frameId: null,
-        index: `a${Date.now() + 1}` as any,
-        roundness: null,
-        seed: Math.floor(Math.random() * 100000),
-        version: 1,
-        versionNonce: Math.floor(Math.random() * 100000),
-        isDeleted: false,
-        boundElements: null,
-        updated: Date.now(),
-        link: null,
-        locked: false,
-        text: newNode.label,
-        fontSize: 14,
-        fontFamily: 1,
-        textAlign: 'center',
-        verticalAlign: 'middle',
-        containerId: newNode.id,
-        originalText: newNode.label,
-        autoResize: true,
-        lineHeight: 1.25,
-      } as ExcalidrawElement
+      const [newRect, newText] = createExcalidrawRect(newNode.id, canvasX - 70, canvasY - 40, nodeDef.color, newNode.label)
 
       excalidrawAPI.updateScene({
         elements: [...elements, newRect, newText],
@@ -249,83 +180,12 @@ export default function DesignLab() {
     loadGraph(template.graph)
     
     // Create Excalidraw elements for all nodes
-    const elements: ExcalidrawElement[] = []
+    const elements: any[] = []
     
     template.graph.nodes.forEach(node => {
       const nodeDef = nodeDefinitions[node.type]
-      const nodeWidth = 140
-      const nodeHeight = 80
-      
-      elements.push({
-        id: node.id,
-        type: 'rectangle',
-        x: node.position.x,
-        y: node.position.y,
-        width: nodeWidth,
-        height: nodeHeight,
-        angle: 0,
-        strokeColor: nodeDef.color,
-        backgroundColor: nodeDef.color + '20',
-        fillStyle: 'solid',
-        strokeWidth: 2,
-        strokeStyle: 'solid',
-        roughness: 0,
-        opacity: 100,
-        groupIds: [],
-        frameId: null,
-        index: `a${Date.now()}` as any,
-        roundness: { type: 3 },
-        seed: Math.floor(Math.random() * 100000),
-        version: 1,
-        versionNonce: Math.floor(Math.random() * 100000),
-        isDeleted: false,
-        boundElements: [],
-        updated: Date.now(),
-        link: null,
-        locked: false,
-        customData: {
-          nodeType: node.type,
-          semanticId: node.id,
-        },
-      } as ExcalidrawElement)
-
-      elements.push({
-        id: `${node.id}-label`,
-        type: 'text',
-        x: node.position.x + 10,
-        y: node.position.y + nodeHeight / 2 - 10,
-        width: nodeWidth - 20,
-        height: 20,
-        angle: 0,
-        strokeColor: nodeDef.color,
-        backgroundColor: 'transparent',
-        fillStyle: 'solid',
-        strokeWidth: 1,
-        strokeStyle: 'solid',
-        roughness: 0,
-        opacity: 100,
-        groupIds: [],
-        frameId: null,
-        index: `a${Date.now() + 1}` as any,
-        roundness: null,
-        seed: Math.floor(Math.random() * 100000),
-        version: 1,
-        versionNonce: Math.floor(Math.random() * 100000),
-        isDeleted: false,
-        boundElements: null,
-        updated: Date.now(),
-        link: null,
-        locked: false,
-        text: node.label,
-        fontSize: 14,
-        fontFamily: 1,
-        textAlign: 'center',
-        verticalAlign: 'middle',
-        containerId: node.id,
-        originalText: node.label,
-        autoResize: true,
-        lineHeight: 1.25,
-      } as ExcalidrawElement)
+      const [rect, text] = createExcalidrawRect(node.id, node.position.x, node.position.y, nodeDef.color, node.label)
+      elements.push(rect, text)
     })
     
     // Add arrows for edges
@@ -351,7 +211,7 @@ export default function DesignLab() {
           opacity: 100,
           groupIds: [],
           frameId: null,
-          index: `a${Date.now() + 2}` as any,
+          index: `a${Date.now() + 2}`,
           roundness: { type: 2 },
           seed: Math.floor(Math.random() * 100000),
           version: 1,
@@ -377,7 +237,7 @@ export default function DesignLab() {
           startArrowhead: null,
           endArrowhead: 'arrow',
           elbowed: false,
-        } as ExcalidrawElement)
+        })
       }
     })
     
@@ -403,20 +263,20 @@ export default function DesignLab() {
       
       // If user is logged in, also save to Supabase
       if (user) {
-        const designData = {
-          title: diagramTitle,
-          diagram_data: {
-            graph,
-            excalidraw: JSON.parse(excalidrawData),
-          },
-          user_id: user.id,
-        }
+        // Convert to JSON-compatible format
+        const diagramData = JSON.parse(JSON.stringify({
+          graph,
+          excalidraw: JSON.parse(excalidrawData),
+        }))
         
         if (diagramId) {
           // Update existing
           const { error } = await supabase
             .from('designs')
-            .update(designData)
+            .update({
+              title: diagramTitle,
+              diagram_data: diagramData,
+            })
             .eq('id', diagramId)
           
           if (error) throw error
@@ -424,7 +284,11 @@ export default function DesignLab() {
           // Create new
           const { error } = await supabase
             .from('designs')
-            .insert(designData)
+            .insert({
+              title: diagramTitle,
+              diagram_data: diagramData,
+              user_id: user.id,
+            })
           
           if (error) throw error
         }

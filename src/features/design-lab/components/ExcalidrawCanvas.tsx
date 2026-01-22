@@ -80,28 +80,42 @@ export function ExcalidrawCanvas({
   return (
     <div 
       ref={containerRef}
-      className="flex-1 h-full relative"
+      className="flex-1 relative"
+      style={{ width: '100%', height: '100%', minHeight: 0 }}
       onDrop={onDrop}
       onDragOver={(e) => e.preventDefault()}
     >
-      <Excalidraw
-        excalidrawAPI={(api: any) => setExcalidrawAPI(api)}
-        theme={theme}
-        onChange={handleChange}
-        UIOptions={{
-          canvasActions: {
-            loadScene: false,
-            export: false,
-            saveAsImage: false,
-          },
-          tools: {
-            image: false,
-          },
+      <div 
+        className="excalidraw-wrapper"
+        style={{ 
+          width: '100%', 
+          height: '100%',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
         }}
-        gridModeEnabled={true}
-        zenModeEnabled={false}
-        viewModeEnabled={false}
-      />
+      >
+        <Excalidraw
+          excalidrawAPI={(api: any) => setExcalidrawAPI(api)}
+          theme={theme}
+          onChange={handleChange}
+          UIOptions={{
+            canvasActions: {
+              loadScene: false,
+              export: false,
+              saveAsImage: false,
+            },
+            tools: {
+              image: false,
+            },
+          }}
+          gridModeEnabled={true}
+          zenModeEnabled={false}
+          viewModeEnabled={false}
+        />
+      </div>
     </div>
   )
 }

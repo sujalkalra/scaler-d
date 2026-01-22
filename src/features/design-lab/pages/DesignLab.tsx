@@ -386,7 +386,10 @@ export default function DesignLab() {
 
   return (
     <AppLayout>
-      <div className="h-full flex flex-col">
+      <div 
+        className="flex flex-col"
+        style={{ height: 'calc(100vh - 4rem)' }}
+      >
         <CanvasHeader
           onSave={handleSave}
           onExportPNG={handleExportPNG}
@@ -397,7 +400,7 @@ export default function DesignLab() {
           isSaving={isSaving}
         />
         
-        <div className="flex-1 flex overflow-hidden">
+        <div className="flex-1 flex overflow-hidden" style={{ minHeight: 0 }}>
           <ComponentSidebar onAddNode={handleAddNode} />
           
           <ExcalidrawCanvas

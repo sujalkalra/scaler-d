@@ -228,7 +228,7 @@ export default function Articles() {
       <div className="container mx-auto px-6 py-8 max-w-7xl">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-4xl font-bold mb-4 text-gradient">System Design Articles</h1>
+        <h1 className="text-4xl font-bold mb-4 text-primary">System Design Articles</h1>
         <p className="text-lg text-muted-foreground max-w-2xl">
           Learn from real-world system designs of top tech companies. Explore architecture patterns, scalability solutions, and engineering best practices.
         </p>

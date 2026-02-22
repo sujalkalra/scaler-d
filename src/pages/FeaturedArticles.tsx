@@ -129,7 +129,7 @@ export default function FeaturedArticles() {
       <div className="container mx-auto px-6 py-8 max-w-7xl">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-4 text-gradient">Featured System Design Articles</h1>
+          <h1 className="text-4xl font-bold mb-4 text-primary">Featured System Design Articles</h1>
           <p className="text-lg text-muted-foreground max-w-2xl">
             Curated deep-dives into the system architectures of world's most successful tech companies. Learn from the best engineering practices and design decisions.
           </p>

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react"
 import { useParams, Link } from "react-router-dom"
-import { ArrowLeft, ArrowUp, ArrowDown, MessageCircle, Share2, Bookmark, Clock, Building2, User } from "lucide-react"
+import { ArrowLeft, ArrowUp, ArrowDown, MessageCircle, Share2, Bookmark, Clock, Building2, User, Pencil } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
@@ -12,6 +12,7 @@ import { useAuth } from "@/hooks/useAuth"
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { z } from 'zod'
+import { MarkdownEditor } from "@/components/editor/MarkdownEditor"
 
 interface Article {
   id: string
@@ -28,6 +29,7 @@ interface Article {
   tags: string[] | null
   difficulty: string | null
   is_featured: boolean
+  author_id: string | null
 }
 
 interface Comment {
@@ -53,6 +55,29 @@ export default function ArticleDetail() {
   const [downvoted, setDownvoted] = useState(false)
   const [saved, setSaved] = useState(false)
   const [submittingComment, setSubmittingComment] = useState(false)
+  const [editing, setEditing] = useState(false)
+  const [savingEdit, setSavingEdit] = useState(false)
+
+  const isAuthor = user && article?.author_id === user.id
+
+  const handleSaveArticle = async (newContent: string) => {
+    if (!article || !user) return
+    setSavingEdit(true)
+    try {
+      const { error } = await supabase
+        .from('articles')
+        .update({ content: newContent })
+        .eq('id', article.id)
+      if (error) throw error
+      setArticle({ ...article, content: newContent })
+      setEditing(false)
+      toast({ title: "Saved", description: "Article updated successfully." })
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message || "Failed to save.", variant: "destructive" })
+    } finally {
+      setSavingEdit(false)
+    }
+  }
 
   useEffect(() => {
     if (id) {
@@ -490,6 +515,17 @@ export default function ArticleDetail() {
                 <Share2 className="w-4 h-4 mr-1" />
                 Share
               </Button>
+              {isAuthor && (
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-muted-foreground hover:text-primary"
+                  onClick={() => setEditing(true)}
+                >
+                  <Pencil className="w-4 h-4 mr-1" />
+                  Edit
+                </Button>
+              )}
             </div>
             <Button 
               variant="ghost" 
@@ -503,6 +539,16 @@ export default function ArticleDetail() {
         </div>
 
         {/* Article Content */}
+        {editing ? (
+          <div className="mb-12">
+            <MarkdownEditor
+              initialContent={article.content}
+              onSave={handleSaveArticle}
+              onCancel={() => setEditing(false)}
+              saving={savingEdit}
+            />
+          </div>
+        ) : (
         <div className="prose prose-lg max-w-none mb-12 dark:prose-invert">
           <ReactMarkdown 
             remarkPlugins={[remarkGfm]}
@@ -538,6 +584,7 @@ export default function ArticleDetail() {
             {article.content}
           </ReactMarkdown>
         </div>
+        )}
 
         {/* Comments Section */}
         <div className="space-y-6">

@@ -212,6 +212,51 @@ export type Database = {
         }
         Relationships: []
       }
+      roadmap_articles: {
+        Row: {
+          category: string | null
+          content: string
+          created_at: string
+          difficulty: string | null
+          excerpt: string | null
+          id: string
+          read_time: number | null
+          slug: string
+          source_url: string | null
+          tags: string[] | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          content: string
+          created_at?: string
+          difficulty?: string | null
+          excerpt?: string | null
+          id?: string
+          read_time?: number | null
+          slug: string
+          source_url?: string | null
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          content?: string
+          created_at?: string
+          difficulty?: string | null
+          excerpt?: string | null
+          id?: string
+          read_time?: number | null
+          slug?: string
+          source_url?: string | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       roadmap_progress: {
         Row: {
           completed: boolean

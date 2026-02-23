@@ -120,28 +120,21 @@ export default function ArticleDetail() {
   const fetchComments = async () => {
     try {
       const { data: commentsData, error } = await supabase
-        .from('comments')
-        .select('*')
+        .from('comments_public' as any)
+        .select('id, article_id, content, parent_id, created_at, updated_at, username, full_name, is_own')
         .eq('article_id', id)
         .order('created_at', { ascending: false })
 
       if (error) throw error
 
-      // Fetch profiles separately for each comment
-      const commentsWithProfiles = await Promise.all(
-        (commentsData || []).map(async (comment) => {
-          const { data: profileData } = await supabase
-            .from('profiles')
-            .select('username, full_name')
-            .eq('user_id', comment.user_id)
-            .maybeSingle()
-
-          return {
-            ...comment,
-            profiles: profileData
-          }
-        })
-      )
+      // Map view columns to the expected shape
+      const commentsWithProfiles = (commentsData || []).map((comment: any) => ({
+        ...comment,
+        profiles: {
+          username: comment.username,
+          full_name: comment.full_name,
+        }
+      }))
 
       setComments(commentsWithProfiles as any)
     } catch (error: any) {

@@ -16,8 +16,7 @@ import {
   List,
   BookOpen
 } from "lucide-react"
-import ReactMarkdown from "react-markdown"
-import remarkGfm from "remark-gfm"
+import { MarkdownRenderer } from "@/components/roadmap/MarkdownRenderer"
 import { cn } from "@/lib/utils"
 import { useAuth } from "@/hooks/useAuth"
 import { supabase } from "@/integrations/supabase/client"
@@ -202,9 +201,9 @@ export default function RoadmapArticle() {
         {/* Main Content */}
         <article className="container mx-auto px-4 py-8 max-w-3xl">
           {/* Header */}
-          <header className="mb-10">
+          <header className="mb-10" style={{ fontFamily: "'Inter', 'Segoe UI', sans-serif" }}>
             <div className="flex flex-wrap items-center gap-2 mb-4">
-              <Badge variant="outline" className="font-normal">
+              <Badge variant="outline" className="font-normal text-xs">
                 Step {currentIndex + 1}
               </Badge>
               <Badge variant="outline" className={difficultyColors[article.difficulty]}>
@@ -220,28 +219,14 @@ export default function RoadmapArticle() {
               {article.title}
             </h1>
             
-            <p className="text-lg sm:text-xl text-muted-foreground leading-relaxed">
+            <p className="text-lg text-muted-foreground leading-relaxed">
               {article.excerpt}
             </p>
           </header>
 
           {/* Content */}
-          <div className="prose prose-lg dark:prose-invert max-w-none
-            prose-headings:font-bold prose-headings:tracking-tight
-            prose-h2:text-2xl prose-h2:mt-12 prose-h2:mb-4 prose-h2:pb-2 prose-h2:border-b prose-h2:border-border
-            prose-h3:text-xl prose-h3:mt-8 prose-h3:mb-3
-            prose-p:leading-relaxed prose-p:text-foreground/80
-            prose-a:text-primary prose-a:no-underline hover:prose-a:underline
-            prose-code:bg-muted prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-sm prose-code:font-normal prose-code:before:content-none prose-code:after:content-none
-            prose-pre:bg-muted prose-pre:border prose-pre:border-border prose-pre:rounded-xl
-            prose-table:border prose-table:rounded-lg prose-th:border prose-th:p-3 prose-th:bg-muted prose-td:border prose-td:p-3
-            prose-img:rounded-xl prose-img:border prose-img:border-border
-            prose-strong:text-foreground prose-strong:font-semibold
-            prose-blockquote:border-l-4 prose-blockquote:border-primary prose-blockquote:bg-muted/50 prose-blockquote:py-1 prose-blockquote:px-4 prose-blockquote:rounded-r-lg prose-blockquote:not-italic
-            prose-ul:my-4 prose-li:my-1
-            prose-hr:border-border prose-hr:my-8
-          ">
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>{article.content}</ReactMarkdown>
+          <div className="mt-2">
+            <MarkdownRenderer content={article.content} />
           </div>
 
           {/* Source Citation */}

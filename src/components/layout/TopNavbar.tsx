@@ -2,7 +2,7 @@ import { useState } from "react"
 import { Bell, Search, User, Menu, LogOut, Code2, Settings } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { ThemeToggle } from "@/components/layout/ThemeToggle"
+
 import { useAuth } from "@/hooks/useAuth"
 import { Link, useNavigate } from "react-router-dom"
 import {

@@ -2,7 +2,7 @@ import { useState } from "react"
 import { Bell, Search, User, Menu, LogOut, Code2, Settings } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { ThemeToggle } from "@/components/layout/ThemeToggle"
+
 import { useAuth } from "@/hooks/useAuth"
 import { Link, useNavigate } from "react-router-dom"
 import {
@@ -105,7 +105,6 @@ export function TopNavbar({ onMenuClick }: TopNavbarProps) {
                 <span className="absolute -top-1 -right-1 w-3 h-3 bg-destructive rounded-full text-xs"></span>
               </Button>
               
-              <ThemeToggle />
               
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -145,7 +144,7 @@ export function TopNavbar({ onMenuClick }: TopNavbarProps) {
             </>
           ) : (
             <>
-              <ThemeToggle />
+              
               <Button asChild variant="ghost">
                 <Link to="/auth">Sign In</Link>
               </Button>

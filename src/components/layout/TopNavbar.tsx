@@ -144,7 +144,7 @@ export function TopNavbar({ onMenuClick }: TopNavbarProps) {
             </>
           ) : (
             <>
-              <ThemeToggle />
+              
               <Button asChild variant="ghost">
                 <Link to="/auth">Sign In</Link>
               </Button>

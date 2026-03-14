@@ -38,6 +38,15 @@ export default function RoadmapArticle() {
   const [saving, setSaving] = useState(false)
   const [dbContent, setDbContent] = useState<string | null>(null)
 
+  // Reset state and scroll to top when slug changes
+  useEffect(() => {
+    setDbContent(null)
+    setIsComplete(false)
+    setEditing(false)
+    setShowPasswordGate(false)
+    window.scrollTo(0, 0)
+  }, [slug])
+
   // Fetch Supabase override content
   useEffect(() => {
     if (!slug) return

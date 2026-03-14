@@ -44,7 +44,8 @@ export default function RoadmapArticle() {
     setIsComplete(false)
     setEditing(false)
     setShowPasswordGate(false)
-    window.scrollTo(0, 0)
+    // Use setTimeout to ensure scroll happens after React re-render
+    setTimeout(() => window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior }), 0)
   }, [slug])
 
   // Fetch Supabase override content

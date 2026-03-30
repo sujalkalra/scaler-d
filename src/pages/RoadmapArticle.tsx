@@ -15,11 +15,13 @@ import {
   ChevronRight,
   List,
   BookOpen,
-  Pencil
+  Pencil,
+  Sparkles
 } from "lucide-react"
 import { MarkdownRenderer } from "@/components/roadmap/MarkdownRenderer"
 import { MarkdownEditor } from "@/components/editor/MarkdownEditor"
 import { PasswordGate } from "@/components/editor/PasswordGate"
+import { AskSujal } from "@/components/roadmap/AskSujal"
 import { cn } from "@/lib/utils"
 import { useAuth } from "@/hooks/useAuth"
 import { supabase } from "@/integrations/supabase/client"

@@ -66,7 +66,7 @@ const components: Components = {
     return (
       <div className="my-6 rounded-xl overflow-hidden border border-[hsl(210,5%,22%)] shadow-lg">
         {language && (
-          <div className="flex items-center justify-between px-4 py-2 bg-[hsl(210,5%,15%)] border-b border-border">
+          <div className="flex items-center justify-between px-4 py-2 bg-[hsl(210,5%,15%)] border-b border-[hsl(210,5%,22%)]">
             <div className="flex items-center gap-2">
               <div className="flex gap-1.5">
                 <span className="w-3 h-3 rounded-full bg-destructive/60" />

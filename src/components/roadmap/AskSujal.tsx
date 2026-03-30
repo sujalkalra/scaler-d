@@ -239,7 +239,7 @@ export function AskSujal({ open, onClose, articleTitle, articleExcerpt }: AskSuj
             onKeyDown={handleKeyDown}
             placeholder="Ask about this topic..."
             rows={1}
-            className="flex-1 resize-none bg-muted/60 border-none rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40 max-h-32 scrollbar-thin"
+            className="flex-1 resize-none bg-muted/60 border-none rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40 max-h-32 overflow-hidden scrollbar-thin"
             style={{ fontFamily: "'Inter', sans-serif" }}
           />
           <Button

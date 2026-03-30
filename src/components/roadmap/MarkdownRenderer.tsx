@@ -1,6 +1,7 @@
 import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
-import { cn } from "@/lib/utils"
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter"
+import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism"
 import type { Components } from "react-markdown"
 
 interface MarkdownRendererProps {
@@ -61,8 +62,9 @@ const components: Components = {
       )
     }
     const language = className?.replace("language-", "") || ""
+    const codeString = String(children).replace(/\n$/, "")
     return (
-      <div className="my-6 rounded-xl overflow-hidden border border-border bg-[hsl(210,5%,13%)] shadow-lg">
+      <div className="my-6 rounded-xl overflow-hidden border border-border shadow-lg">
         {language && (
           <div className="flex items-center justify-between px-4 py-2 bg-[hsl(210,5%,15%)] border-b border-border">
             <div className="flex items-center gap-2">
@@ -75,11 +77,22 @@ const components: Components = {
             </div>
           </div>
         )}
-        <pre className="p-4 overflow-x-auto">
-          <code className="text-sm font-mono leading-relaxed text-foreground/90">
-            {children}
-          </code>
-        </pre>
+        <SyntaxHighlighter
+          language={language || "text"}
+          style={oneDark}
+          customStyle={{
+            margin: 0,
+            padding: "1rem",
+            background: "hsl(210, 5%, 13%)",
+            fontSize: "0.875rem",
+            borderRadius: 0,
+          }}
+          className="code-scrollbar"
+          showLineNumbers={codeString.split("\n").length > 3}
+          lineNumberStyle={{ color: "hsl(210, 4%, 30%)", minWidth: "2.5em" }}
+        >
+          {codeString}
+        </SyntaxHighlighter>
       </div>
     )
   },

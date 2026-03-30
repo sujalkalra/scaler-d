@@ -15,11 +15,13 @@ import {
   ChevronRight,
   List,
   BookOpen,
-  Pencil
+  Pencil,
+  Sparkles
 } from "lucide-react"
 import { MarkdownRenderer } from "@/components/roadmap/MarkdownRenderer"
 import { MarkdownEditor } from "@/components/editor/MarkdownEditor"
 import { PasswordGate } from "@/components/editor/PasswordGate"
+import { AskSujal } from "@/components/roadmap/AskSujal"
 import { cn } from "@/lib/utils"
 import { useAuth } from "@/hooks/useAuth"
 import { supabase } from "@/integrations/supabase/client"
@@ -37,6 +39,7 @@ export default function RoadmapArticle() {
   const [showPasswordGate, setShowPasswordGate] = useState(false)
   const [saving, setSaving] = useState(false)
   const [dbContent, setDbContent] = useState<string | null>(null)
+  const [showAskSujal, setShowAskSujal] = useState(false)
 
   // Reset state and scroll to top when slug changes
   useEffect(() => {
@@ -212,6 +215,16 @@ export default function RoadmapArticle() {
               </Link>
               
               <div className="flex items-center gap-4">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowAskSujal(true)}
+                  className="gap-2 text-primary hover:text-primary hover:bg-primary/10"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  <span className="hidden sm:inline">Ask SUJAL</span>
+                </Button>
+
                 <Button
                   variant="ghost"
                   size="sm"
@@ -393,6 +406,17 @@ export default function RoadmapArticle() {
             </nav>
           )}
         </article>
+
+        {/* Ask SUJAL AI Sidebar */}
+        <AskSujal
+          open={showAskSujal}
+          onClose={() => setShowAskSujal(false)}
+          articleTitle={article.title}
+          articleExcerpt={article.excerpt}
+        />
+        {showAskSujal && (
+          <div className="fixed inset-0 bg-background/60 z-40" onClick={() => setShowAskSujal(false)} />
+        )}
       </div>
     </AppLayout>
   )

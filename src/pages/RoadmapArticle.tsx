@@ -39,6 +39,7 @@ export default function RoadmapArticle() {
   const [showPasswordGate, setShowPasswordGate] = useState(false)
   const [saving, setSaving] = useState(false)
   const [dbContent, setDbContent] = useState<string | null>(null)
+  const [showAskSujal, setShowAskSujal] = useState(false)
 
   // Reset state and scroll to top when slug changes
   useEffect(() => {

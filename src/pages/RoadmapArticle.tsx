@@ -218,6 +218,16 @@ export default function RoadmapArticle() {
                 <Button
                   variant="ghost"
                   size="sm"
+                  onClick={() => setShowAskSujal(true)}
+                  className="gap-2 text-primary hover:text-primary hover:bg-primary/10"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  <span className="hidden sm:inline">Ask SUJAL</span>
+                </Button>
+
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={handleEditClick}
                   className="gap-2 text-muted-foreground hover:text-primary"
                 >

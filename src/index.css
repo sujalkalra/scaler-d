@@ -230,6 +230,35 @@
     border-radius: 3px;
   }
 
+  /* Code block scrollbar - dark themed */
+  .code-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(210 5% 30%) hsl(210 5% 13%);
+  }
+
+  .code-scrollbar::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .code-scrollbar::-webkit-scrollbar-track {
+    background: hsl(210 5% 13%);
+    border-radius: 4px;
+  }
+
+  .code-scrollbar::-webkit-scrollbar-thumb {
+    background: hsl(210 5% 30%);
+    border-radius: 4px;
+  }
+
+  .code-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: hsl(210 5% 38%);
+  }
+
+  .code-scrollbar::-webkit-scrollbar-corner {
+    background: hsl(210 5% 13%);
+  }
+
   /* Grid Pattern Background */
   .bg-grid-pattern {
     background-image: 

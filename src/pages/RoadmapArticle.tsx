@@ -406,6 +406,17 @@ export default function RoadmapArticle() {
             </nav>
           )}
         </article>
+
+        {/* Ask SUJAL AI Sidebar */}
+        <AskSujal
+          open={showAskSujal}
+          onClose={() => setShowAskSujal(false)}
+          articleTitle={article.title}
+          articleExcerpt={article.excerpt}
+        />
+        {showAskSujal && (
+          <div className="fixed inset-0 bg-background/60 z-40" onClick={() => setShowAskSujal(false)} />
+        )}
       </div>
     </AppLayout>
   )

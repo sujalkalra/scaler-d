@@ -64,7 +64,7 @@ const components: Components = {
     const language = className?.replace("language-", "") || ""
     const codeString = String(children).replace(/\n$/, "")
     return (
-      <div className="my-6 rounded-xl overflow-hidden border border-border shadow-lg">
+      <div className="my-6 rounded-xl overflow-hidden border border-[hsl(210,5%,22%)] shadow-lg">
         {language && (
           <div className="flex items-center justify-between px-4 py-2 bg-[hsl(210,5%,15%)] border-b border-border">
             <div className="flex items-center gap-2">

@@ -1,7 +1,7 @@
 import { useState } from "react"
-import { Bell, Search, User, Menu, LogOut, Code2, Settings } from "lucide-react"
+import { Search, User, Menu, LogOut, Code2, Settings } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { SmartSearch } from "@/components/layout/SmartSearch"
 
 import { useAuth } from "@/hooks/useAuth"
 import { Link, useNavigate } from "react-router-dom"
@@ -79,15 +79,8 @@ export function TopNavbar({ onMenuClick }: TopNavbarProps) {
             </Button>
           </nav>
 
-          {/* Search Bar */}
           <div className="hidden md:flex flex-1 max-w-lg ml-4">
-            <div className="relative w-full">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-              <Input
-                placeholder="Search articles, topics, companies..."
-                className="pl-10 focus-ring"
-              />
-            </div>
+            <SmartSearch />
           </div>
         </div>
 
@@ -100,11 +93,6 @@ export function TopNavbar({ onMenuClick }: TopNavbarProps) {
 
           {isAuthenticated ? (
             <>
-              <Button variant="ghost" size="icon" className="relative">
-                <Bell className="w-5 h-5" />
-                <span className="absolute -top-1 -right-1 w-3 h-3 bg-destructive rounded-full text-xs"></span>
-              </Button>
-              
               
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>

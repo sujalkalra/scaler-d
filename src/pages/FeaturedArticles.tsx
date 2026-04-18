@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react"
+import { Link } from "react-router-dom"
 import { Heart, MessageCircle, Share2, Bookmark, Clock, Building2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -181,9 +182,10 @@ export default function FeaturedArticles() {
             <p className="text-muted-foreground">Try adjusting your filters or check back later for new content.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {filteredArticles.map((article) => (
-              <Card key={article.id} className="card-article group cursor-pointer animate-fade-in">
+              <Link key={article.id} to={`/articles/${article.id}`} className="block">
+                <Card className="card-article group cursor-pointer animate-fade-in h-full">
                 <div className="space-y-4">
                   {/* Header - Company Image instead of Author */}
                   <div className="flex items-start justify-between">

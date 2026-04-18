@@ -410,7 +410,7 @@ export default function ArticleDetail() {
       <AppLayout>
         <div className="container mx-auto px-6 py-8 max-w-4xl text-center">
           <h1 className="text-2xl font-bold mb-4">Article not found</h1>
-          <Link to="/articles">
+          <Link to="/featured-articles">
             <Button variant="outline">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Articles
@@ -425,9 +425,9 @@ export default function ArticleDetail() {
     <AppLayout>
       <div className="container mx-auto px-6 py-8 max-w-4xl">
         {/* Back Button */}
-        <Link to="/articles" className="inline-flex items-center text-muted-foreground hover:text-foreground mb-6">
+        <Link to="/featured-articles" className="inline-flex items-center text-muted-foreground hover:text-foreground mb-6">
           <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Articles
+          Back to Featured Articles
         </Link>
 
         {/* Article Header */}

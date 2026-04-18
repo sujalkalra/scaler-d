@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react"
+import { Link } from "react-router-dom"
 import { Heart, MessageCircle, Share2, Bookmark, Clock, Building2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -181,9 +182,10 @@ export default function FeaturedArticles() {
             <p className="text-muted-foreground">Try adjusting your filters or check back later for new content.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {filteredArticles.map((article) => (
-              <Card key={article.id} className="card-article group cursor-pointer animate-fade-in">
+              <Link key={article.id} to={`/articles/${article.id}`} className="block">
+                <Card className="card-article group cursor-pointer animate-fade-in h-full">
                 <div className="space-y-4">
                   {/* Header - Company Image instead of Author */}
                   <div className="flex items-start justify-between">
@@ -253,7 +255,7 @@ export default function FeaturedArticles() {
                         variant="ghost" 
                         size="sm" 
                         className="text-muted-foreground hover:text-foreground"
-                        onClick={() => toast({ title: "Liked", description: `You liked: ${article.title}` })}
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); toast({ title: "Liked", description: `You liked: ${article.title}` }) }}
                       >
                         <Heart className="w-4 h-4 mr-1" />
                         {article.upvotes || 0}
@@ -262,17 +264,17 @@ export default function FeaturedArticles() {
                         variant="ghost" 
                         size="sm" 
                         className="text-muted-foreground hover:text-foreground"
-                        onClick={() => toast({ title: "Comments", description: "Comments feature coming soon" })}
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); toast({ title: "Comments", description: "Comments feature coming soon" }) }}
                       >
                         <MessageCircle className="w-4 h-4 mr-1" />
-                        {/* Comments count would go here */}
                         0
                       </Button>
                       <Button 
                         variant="ghost" 
                         size="sm" 
                         className="text-muted-foreground hover:text-foreground"
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.preventDefault(); e.stopPropagation();
                           navigator.clipboard.writeText(window.location.href)
                           toast({ title: "Link copied", description: "Article link copied to clipboard" })
                         }}
@@ -285,13 +287,14 @@ export default function FeaturedArticles() {
                       variant="ghost" 
                       size="sm" 
                       className="text-muted-foreground hover:text-foreground"
-                      onClick={() => toast({ title: "Saved", description: "Article saved to bookmarks" })}
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); toast({ title: "Saved", description: "Article saved to bookmarks" }) }}
                     >
                       <Bookmark className="w-4 h-4" />
                     </Button>
                   </div>
                 </div>
-              </Card>
+                </Card>
+              </Link>
             ))}
           </div>
         )}

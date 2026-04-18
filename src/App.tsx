@@ -5,11 +5,10 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "./hooks/useAuth";
 import Index from "./pages/Index";
-import Articles from "./pages/Articles";
 import ArticleDetail from "./pages/ArticleDetail";
 import FeaturedArticles from "./pages/FeaturedArticles";
 import Practice from "./pages/Practice";
-import AIGenerator from "./pages/AIGenerator";
+import SkillScope from "./pages/SkillScope";
 import Roadmap from "./pages/Roadmap";
 import RoadmapArticle from "./pages/RoadmapArticle";
 import Profile from "./pages/Profile";
@@ -32,18 +31,20 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<Index />} />
-      <Route path="/articles" element={<Articles />} />
-      <Route path="/articles/:id" element={<ArticleDetail />} />
       <Route path="/featured-articles" element={<FeaturedArticles />} />
+      <Route path="/articles/:id" element={<ArticleDetail />} />
       <Route path="/practice" element={<Practice />} />
-      <Route path="/ai-generator" element={<AIGenerator />} />
+      <Route path="/skill-scope" element={<SkillScope />} />
       <Route path="/roadmap" element={<Roadmap />} />
       <Route path="/roadmap/:slug" element={<RoadmapArticle />} />
       <Route path="/profile" element={<Profile />} />
-      <Route 
-        path="/auth" 
-        element={isAuthenticated ? <Navigate to="/" replace /> : <Auth />} 
+      <Route
+        path="/auth"
+        element={isAuthenticated ? <Navigate to="/" replace /> : <Auth />}
       />
+      {/* Redirect legacy routes */}
+      <Route path="/articles" element={<Navigate to="/featured-articles" replace />} />
+      <Route path="/ai-generator" element={<Navigate to="/skill-scope" replace />} />
       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
       <Route path="*" element={<NotFound />} />
     </Routes>

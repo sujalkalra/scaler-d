@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
 import { supabase } from "@/integrations/supabase/client"
 import { useAuth } from "@/hooks/useAuth"
+import { useIsAdmin } from "@/hooks/useIsAdmin"
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { z } from 'zod'
@@ -58,7 +59,8 @@ export default function ArticleDetail() {
   const [editing, setEditing] = useState(false)
   const [savingEdit, setSavingEdit] = useState(false)
 
-  const isAuthor = user && article?.author_id === user.id
+  const { isAdmin } = useIsAdmin()
+  const canEdit = isAdmin
 
   const handleSaveArticle = async (newContent: string) => {
     if (!article || !user) return
@@ -408,7 +410,7 @@ export default function ArticleDetail() {
       <AppLayout>
         <div className="container mx-auto px-6 py-8 max-w-4xl text-center">
           <h1 className="text-2xl font-bold mb-4">Article not found</h1>
-          <Link to="/articles">
+          <Link to="/featured-articles">
             <Button variant="outline">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Articles
@@ -423,9 +425,9 @@ export default function ArticleDetail() {
     <AppLayout>
       <div className="container mx-auto px-6 py-8 max-w-4xl">
         {/* Back Button */}
-        <Link to="/articles" className="inline-flex items-center text-muted-foreground hover:text-foreground mb-6">
+        <Link to="/featured-articles" className="inline-flex items-center text-muted-foreground hover:text-foreground mb-6">
           <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Articles
+          Back to Featured Articles
         </Link>
 
         {/* Article Header */}
@@ -508,7 +510,7 @@ export default function ArticleDetail() {
                 <Share2 className="w-4 h-4 mr-1" />
                 Share
               </Button>
-              {isAuthor && (
+              {canEdit && (
                 <Button 
                   variant="ghost" 
                   size="sm" 

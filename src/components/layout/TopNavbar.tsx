@@ -63,16 +63,13 @@ export function TopNavbar({ onMenuClick }: TopNavbarProps) {
           {/* Desktop Navigation Links */}
           <nav className="hidden lg:flex items-center gap-1 ml-6">
             <Button variant="ghost" size="sm" asChild>
-              <Link to="/articles">Articles</Link>
-            </Button>
-            <Button variant="ghost" size="sm" asChild>
-              <Link to="/featured-articles">Featured</Link>
+              <Link to="/featured-articles">Featured Articles</Link>
             </Button>
             <Button variant="ghost" size="sm" asChild>
               <Link to="/practice">Practice</Link>
             </Button>
             <Button variant="ghost" size="sm" asChild>
-              <Link to="/ai-generator">AI Generator</Link>
+              <Link to="/skill-scope">Skill Scope</Link>
             </Button>
             <Button variant="ghost" size="sm" asChild>
               <Link to="/roadmap">Roadmap</Link>

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react"
-import { Search, MapPin, Building2, X } from "lucide-react"
+import { Search, MapPin, Building2, Wrench, Star, X } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { useNavigate } from "react-router-dom"
@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client"
 interface SearchResult {
   id: string
   title: string
-  type: "roadmap" | "company" | "article"
+  type: "roadmap" | "company" | "article" | "skill"
   slug?: string
   category?: string
 }
@@ -27,15 +27,17 @@ export function SmartSearch() {
   const [isOpen, setIsOpen] = useState(false)
   const [selectedIndex, setSelectedIndex] = useState(-1)
   const [articles, setArticles] = useState<SearchResult[]>([])
+  const [skills, setSkills] = useState<SearchResult[]>([])
   const inputRef = useRef<HTMLInputElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const navigate = useNavigate()
 
-  // Fetch articles once
+  // Fetch featured articles + skill scope tools once
   useEffect(() => {
     supabase
       .from("articles")
       .select("id, title, company")
+      .eq("is_featured", true)
       .eq("published", true)
       .then(({ data }) => {
         if (data) {
@@ -45,6 +47,22 @@ export function SmartSearch() {
               title: a.title,
               type: "article" as const,
               category: a.company || undefined,
+            }))
+          )
+        }
+      })
+
+    supabase
+      .from("skill_scope_tools")
+      .select("id, name, tagline")
+      .then(({ data }) => {
+        if (data) {
+          setSkills(
+            data.map((t) => ({
+              id: t.id,
+              title: t.name,
+              type: "skill" as const,
+              category: t.tagline || undefined,
             }))
           )
         }
@@ -60,7 +78,6 @@ export function SmartSearch() {
       const lower = q.toLowerCase()
       const matched: SearchResult[] = []
 
-      // Roadmap topics
       roadmapData.forEach((item) => {
         if (item.title.toLowerCase().includes(lower) || item.category.toLowerCase().includes(lower)) {
           matched.push({
@@ -73,35 +90,32 @@ export function SmartSearch() {
         }
       })
 
-      // Companies
       FEATURED_COMPANIES.forEach((c) => {
         if (c.toLowerCase().includes(lower)) {
-          matched.push({
-            id: `company-${c}`,
-            title: c,
-            type: "company",
-          })
+          matched.push({ id: `company-${c}`, title: c, type: "company" })
         }
       })
 
-      // Articles
       articles.forEach((a) => {
-        if (a.title.toLowerCase().includes(lower)) {
-          matched.push(a)
+        if (a.title.toLowerCase().includes(lower)) matched.push(a)
+      })
+
+      skills.forEach((s) => {
+        if (s.title.toLowerCase().includes(lower) || s.category?.toLowerCase().includes(lower)) {
+          matched.push(s)
         }
       })
 
       setResults(matched.slice(0, 8))
       setSelectedIndex(-1)
     },
-    [articles]
+    [articles, skills]
   )
 
   useEffect(() => {
     search(query)
   }, [query, search])
 
-  // Close on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
@@ -118,9 +132,11 @@ export function SmartSearch() {
     if (result.type === "roadmap" && result.slug) {
       navigate(`/roadmap/${result.slug}`)
     } else if (result.type === "company") {
-      navigate(`/articles?company=${encodeURIComponent(result.title)}`)
+      navigate(`/featured-articles?company=${encodeURIComponent(result.title)}`)
     } else if (result.type === "article") {
       navigate(`/articles/${result.id}`)
+    } else if (result.type === "skill") {
+      navigate(`/skill-scope`)
     }
   }
 
@@ -143,7 +159,8 @@ export function SmartSearch() {
   const typeConfig = {
     roadmap: { label: "Roadmap", icon: MapPin, color: "bg-primary/15 text-primary border-primary/20" },
     company: { label: "Company", icon: Building2, color: "bg-accent/60 text-accent-foreground border-accent" },
-    article: { label: "Article", icon: Search, color: "bg-muted text-muted-foreground border-border" },
+    article: { label: "Featured", icon: Star, color: "bg-warning-light text-warning border-warning/20" },
+    skill: { label: "Skill", icon: Wrench, color: "bg-secondary/30 text-secondary-foreground border-secondary/30" },
   }
 
   return (
@@ -159,7 +176,7 @@ export function SmartSearch() {
           }}
           onFocus={() => query && setIsOpen(true)}
           onKeyDown={handleKeyDown}
-          placeholder="Search topics, companies, articles..."
+          placeholder="Search topics, companies, skills..."
           className="pl-10 pr-8 focus-ring"
         />
         {query && (
@@ -182,9 +199,7 @@ export function SmartSearch() {
                 key={result.id}
                 onClick={() => handleSelect(result)}
                 className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors ${
-                  index === selectedIndex
-                    ? "bg-accent text-accent-foreground"
-                    : "hover:bg-muted/50"
+                  index === selectedIndex ? "bg-accent text-accent-foreground" : "hover:bg-muted/50"
                 }`}
               >
                 <Icon className="w-4 h-4 shrink-0 text-muted-foreground" />
@@ -192,8 +207,8 @@ export function SmartSearch() {
                 <Badge variant="outline" className={`text-[10px] px-1.5 py-0 shrink-0 ${config.color}`}>
                   {config.label}
                 </Badge>
-                {result.category && result.type === "roadmap" && (
-                  <span className="text-xs text-muted-foreground shrink-0">{result.category}</span>
+                {result.category && (
+                  <span className="text-xs text-muted-foreground shrink-0 hidden sm:inline">{result.category}</span>
                 )}
               </button>
             )

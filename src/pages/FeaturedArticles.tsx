@@ -255,7 +255,7 @@ export default function FeaturedArticles() {
                         variant="ghost" 
                         size="sm" 
                         className="text-muted-foreground hover:text-foreground"
-                        onClick={() => toast({ title: "Liked", description: `You liked: ${article.title}` })}
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); toast({ title: "Liked", description: `You liked: ${article.title}` }) }}
                       >
                         <Heart className="w-4 h-4 mr-1" />
                         {article.upvotes || 0}
@@ -264,17 +264,17 @@ export default function FeaturedArticles() {
                         variant="ghost" 
                         size="sm" 
                         className="text-muted-foreground hover:text-foreground"
-                        onClick={() => toast({ title: "Comments", description: "Comments feature coming soon" })}
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); toast({ title: "Comments", description: "Comments feature coming soon" }) }}
                       >
                         <MessageCircle className="w-4 h-4 mr-1" />
-                        {/* Comments count would go here */}
                         0
                       </Button>
                       <Button 
                         variant="ghost" 
                         size="sm" 
                         className="text-muted-foreground hover:text-foreground"
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.preventDefault(); e.stopPropagation();
                           navigator.clipboard.writeText(window.location.href)
                           toast({ title: "Link copied", description: "Article link copied to clipboard" })
                         }}
@@ -287,13 +287,14 @@ export default function FeaturedArticles() {
                       variant="ghost" 
                       size="sm" 
                       className="text-muted-foreground hover:text-foreground"
-                      onClick={() => toast({ title: "Saved", description: "Article saved to bookmarks" })}
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); toast({ title: "Saved", description: "Article saved to bookmarks" }) }}
                     >
                       <Bookmark className="w-4 h-4" />
                     </Button>
                   </div>
                 </div>
-              </Card>
+                </Card>
+              </Link>
             ))}
           </div>
         )}

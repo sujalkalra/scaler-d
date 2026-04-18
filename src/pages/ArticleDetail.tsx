@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
 import { supabase } from "@/integrations/supabase/client"
 import { useAuth } from "@/hooks/useAuth"
+import { useIsAdmin } from "@/hooks/useIsAdmin"
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { z } from 'zod'
@@ -58,7 +59,8 @@ export default function ArticleDetail() {
   const [editing, setEditing] = useState(false)
   const [savingEdit, setSavingEdit] = useState(false)
 
-  const isAuthor = user && article?.author_id === user.id
+  const { isAdmin } = useIsAdmin()
+  const canEdit = isAdmin
 
   const handleSaveArticle = async (newContent: string) => {
     if (!article || !user) return
@@ -508,7 +510,7 @@ export default function ArticleDetail() {
                 <Share2 className="w-4 h-4 mr-1" />
                 Share
               </Button>
-              {isAuthor && (
+              {canEdit && (
                 <Button 
                   variant="ghost" 
                   size="sm" 

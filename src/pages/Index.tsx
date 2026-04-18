@@ -1,14 +1,14 @@
-import { ArrowRight, BookOpen, PenTool, Zap, TrendingUp, Users, Star } from "lucide-react"
+import { ArrowRight, BookOpen, PenTool, Wrench, TrendingUp, Users, Star } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { AppLayout } from "@/components/layout/AppLayout"
 import { Link } from "react-router-dom"
 
 const stats = [
-  { label: "Articles", value: "500+", icon: BookOpen },
-  { label: "Active Users", value: "50K+", icon: Users },
-  { label: "Designs Created", value: "100K+", icon: PenTool },
-  { label: "Companies Covered", value: "200+", icon: TrendingUp },
+  { label: "Featured Articles", value: "50+", icon: Star },
+  { label: "Active Learners", value: "10K+", icon: Users },
+  { label: "Roadmap Topics", value: "30+", icon: BookOpen },
+  { label: "Companies Covered", value: "20+", icon: TrendingUp },
 ]
 
 const featuredCompanies = [
@@ -132,11 +132,11 @@ const Index = () => {
 
               <Card className="p-6 lg:p-8 group hover:scale-105 transition-transform duration-300 md:col-span-2 lg:col-span-1 bg-card border border-border">
                 <div className="w-14 h-14 lg:w-16 lg:h-16 bg-primary rounded-2xl flex items-center justify-center mb-4 lg:mb-6 shadow-medium">
-                  <Zap className="w-7 h-7 lg:w-8 lg:h-8 text-primary-foreground" />
+                  <Wrench className="w-7 h-7 lg:w-8 lg:h-8 text-primary-foreground" />
                 </div>
-                <h3 className="text-lg lg:text-xl font-semibold mb-3 lg:mb-4">AI-Powered Insights</h3>
+                <h3 className="text-lg lg:text-xl font-semibold mb-3 lg:mb-4">Skill Scope</h3>
                 <p className="text-sm lg:text-base text-muted-foreground leading-relaxed">
-                  Generate system designs and explanations for any company or use case with advanced AI.
+                  A curated library of the most powerful Python tools every modern DevOps engineer should know — grouped by what they help you do.
                 </p>
               </Card>
             </div>
@@ -156,7 +156,7 @@ const Index = () => {
                   <Link to="/auth">Start Free Trial</Link>
                 </Button>
                 <Button asChild variant="outline" size="hero">
-                  <Link to="/articles">Explore Articles</Link>
+                  <Link to="/featured-articles">Explore Featured Articles</Link>
                 </Button>
               </div>
             </div>

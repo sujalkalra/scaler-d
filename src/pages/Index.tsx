@@ -50,9 +50,9 @@ const Index = () => {
                   </Link>
                 </Button>
                 <Button asChild variant="outline" size="hero" className="border-2 hover:bg-muted">
-                  <Link to="/featured-articles">
+                  <Link to="/skill-scope">
                     <Star className="w-4 h-4 mr-2" />
-                    Featured Articles
+                    Skill Scope
                   </Link>
                 </Button>
               </div>
@@ -156,7 +156,7 @@ const Index = () => {
                   <Link to="/auth">Start Free Trial</Link>
                 </Button>
                 <Button asChild variant="outline" size="hero">
-                  <Link to="/featured-articles">Explore Featured Articles</Link>
+                  <Link to="/skill-scope">Explore Skill Scope</Link>
                 </Button>
               </div>
             </div>

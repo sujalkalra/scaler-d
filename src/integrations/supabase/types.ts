@@ -219,6 +219,36 @@ export type Database = {
         }
         Relationships: []
       }
+      quiz_attempts: {
+        Row: {
+          created_at: string
+          id: string
+          node_id: number
+          passed: boolean
+          score: number
+          total: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          node_id: number
+          passed: boolean
+          score: number
+          total: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          node_id?: number
+          passed?: boolean
+          score?: number
+          total?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       roadmap_articles: {
         Row: {
           category: string | null
@@ -288,6 +318,27 @@ export type Database = {
           node_id?: number
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      roadmap_quizzes: {
+        Row: {
+          created_at: string
+          node_id: number
+          questions: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          node_id: number
+          questions: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          node_id?: number
+          questions?: Json
+          updated_at?: string
         }
         Relationships: []
       }
@@ -379,6 +430,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_badges: {
+        Row: {
+          badge_description: string | null
+          badge_name: string
+          badge_slug: string
+          earned_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          badge_description?: string | null
+          badge_name: string
+          badge_slug: string
+          earned_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          badge_description?: string | null
+          badge_name?: string
+          badge_slug?: string
+          earned_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {

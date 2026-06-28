@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react"
-import { Search, MapPin, Building2, Wrench, Star, X } from "lucide-react"
+import { Search, MapPin, Wrench, X } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { useNavigate } from "react-router-dom"
@@ -9,56 +9,31 @@ import { supabase } from "@/integrations/supabase/client"
 interface SearchResult {
   id: string
   title: string
-  type: "roadmap" | "company" | "article" | "skill"
+  type: "roadmap" | "skill"
   slug?: string
   category?: string
 }
 
-const FEATURED_COMPANIES = [
-  "Netflix", "YouTube", "Spotify", "Instagram", "Uber", "Amazon",
-  "Google", "Meta", "Twitter", "WhatsApp", "Slack", "Discord",
-  "Airbnb", "LinkedIn", "Pinterest", "Dropbox", "Stripe", "GitHub",
-  "Reddit", "TikTok", "Zoom", "Figma", "Notion", "Shopify",
-]
 
 export function SmartSearch() {
   const [query, setQuery] = useState("")
   const [results, setResults] = useState<SearchResult[]>([])
   const [isOpen, setIsOpen] = useState(false)
   const [selectedIndex, setSelectedIndex] = useState(-1)
-  const [articles, setArticles] = useState<SearchResult[]>([])
   const [skills, setSkills] = useState<SearchResult[]>([])
   const inputRef = useRef<HTMLInputElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const navigate = useNavigate()
 
-  // Fetch featured articles + skill scope tools once
+  // Fetch skill scope tools once
   useEffect(() => {
     supabase
-      .from("articles")
-      .select("id, title, company")
-      .eq("is_featured", true)
-      .eq("published", true)
-      .then(({ data }) => {
-        if (data) {
-          setArticles(
-            data.map((a) => ({
-              id: a.id,
-              title: a.title,
-              type: "article" as const,
-              category: a.company || undefined,
-            }))
-          )
-        }
-      })
-
-    supabase
-      .from("skill_scope_tools")
+      .from("skill_scope_tools" as any)
       .select("id, name, tagline")
-      .then(({ data }) => {
+      .then(({ data }: any) => {
         if (data) {
           setSkills(
-            data.map((t) => ({
+            data.map((t: any) => ({
               id: t.id,
               title: t.name,
               type: "skill" as const,
@@ -90,16 +65,6 @@ export function SmartSearch() {
         }
       })
 
-      FEATURED_COMPANIES.forEach((c) => {
-        if (c.toLowerCase().includes(lower)) {
-          matched.push({ id: `company-${c}`, title: c, type: "company" })
-        }
-      })
-
-      articles.forEach((a) => {
-        if (a.title.toLowerCase().includes(lower)) matched.push(a)
-      })
-
       skills.forEach((s) => {
         if (s.title.toLowerCase().includes(lower) || s.category?.toLowerCase().includes(lower)) {
           matched.push(s)
@@ -109,7 +74,7 @@ export function SmartSearch() {
       setResults(matched.slice(0, 8))
       setSelectedIndex(-1)
     },
-    [articles, skills]
+    [skills]
   )
 
   useEffect(() => {
@@ -131,10 +96,6 @@ export function SmartSearch() {
     setQuery("")
     if (result.type === "roadmap" && result.slug) {
       navigate(`/roadmap/${result.slug}`)
-    } else if (result.type === "company") {
-      navigate(`/featured-articles?company=${encodeURIComponent(result.title)}`)
-    } else if (result.type === "article") {
-      navigate(`/articles/${result.id}`)
     } else if (result.type === "skill") {
       navigate(`/skill-scope`)
     }

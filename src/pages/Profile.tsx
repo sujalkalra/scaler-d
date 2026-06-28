@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react"
-import { Link } from "react-router-dom"
 import { AppLayout } from "@/components/layout/AppLayout"
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute"
 import { useAuth } from "@/hooks/useAuth"
@@ -11,10 +10,12 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
 import { useToast } from "@/hooks/use-toast"
-import { User, Mail, Calendar, Edit3, Save, BookOpen, Palette, Heart } from "lucide-react"
+import { Mail, Calendar, Edit3, Save, Map, Trophy, Award, ShieldCheck } from "lucide-react"
 import { AvatarUpload } from "@/components/profile/AvatarUpload"
+import { roadmapData } from "@/components/roadmap/roadmapData"
+import { SENTINEL_BADGE } from "@/lib/badges"
+import { Progress } from "@/components/ui/progress"
 import { z } from "zod"
 
 interface Profile {
@@ -28,23 +29,29 @@ interface Profile {
   updated_at: string
 }
 
+interface UserBadge {
+  id: string
+  badge_slug: string
+  badge_name: string
+  badge_description: string | null
+  earned_at: string
+}
+
 function ProfileContent() {
   const { user } = useAuth()
   const [profile, setProfile] = useState<Profile | null>(null)
-  const [savedArticles, setSavedArticles] = useState<any[]>([])
+  const [completedCount, setCompletedCount] = useState(0)
+  const [badges, setBadges] = useState<UserBadge[]>([])
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(false)
-  const [formData, setFormData] = useState({
-    username: "",
-    full_name: "",
-    bio: ""
-  })
+  const [formData, setFormData] = useState({ username: "", full_name: "", bio: "" })
   const { toast } = useToast()
 
   useEffect(() => {
     if (user) {
       fetchProfile()
-      fetchSavedArticles()
+      fetchProgress()
+      fetchBadges()
     }
   }, [user])
 
@@ -55,133 +62,83 @@ function ProfileContent() {
         .select("*")
         .eq("user_id", user?.id)
         .maybeSingle()
-
       if (error) throw error
-      
       if (data) {
         setProfile(data)
         setFormData({
           username: data.username || "",
           full_name: data.full_name || "",
-          bio: data.bio || ""
+          bio: data.bio || "",
         })
       }
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      })
+      toast({ title: "Error", description: error.message, variant: "destructive" })
     } finally {
       setLoading(false)
     }
   }
 
-  const fetchSavedArticles = async () => {
-    try {
-      console.log('Fetching saved articles for user:', user?.id)
-      
-      // Get all saved article records
-      const { data: savedData, error: savedError } = await supabase
-        .from('saved_articles')
-        .select('article_id')
-        .eq('user_id', user?.id)
+  const fetchProgress = async () => {
+    const { data } = await supabase
+      .from("roadmap_progress")
+      .select("node_id")
+      .eq("user_id", user?.id)
+      .eq("completed", true)
+    setCompletedCount(data?.length || 0)
+  }
 
-      console.log('Saved data:', savedData, 'Error:', savedError)
-
-      if (savedError) throw savedError
-
-      if (!savedData || savedData.length === 0) {
-        console.log('No saved articles found')
-        setSavedArticles([])
-        return
-      }
-
-      // Get the actual articles
-      const articleIds = savedData.map(v => v.article_id)
-      console.log('Article IDs to fetch:', articleIds)
-      
-      const { data: articlesData, error: articlesError } = await supabase
-        .from('articles')
-        .select('id, title, excerpt, company, read_time, tags, difficulty, created_at')
-        .in('id', articleIds)
-        .order('created_at', { ascending: false })
-
-      console.log('Articles data:', articlesData, 'Error:', articlesError)
-
-      if (articlesError) throw articlesError
-      setSavedArticles(articlesData || [])
-    } catch (error: any) {
-      console.error('Error fetching saved articles:', error)
-    }
+  const fetchBadges = async () => {
+    const { data } = await supabase
+      .from("user_badges" as any)
+      .select("id, badge_slug, badge_name, badge_description, earned_at")
+      .eq("user_id", user?.id)
+      .order("earned_at", { ascending: false })
+    setBadges((data as any) || [])
   }
 
   const handleSave = async () => {
     if (!user) return
-
-    // Input validation
     const profileSchema = z.object({
-      username: z.string()
+      username: z
+        .string()
         .trim()
         .min(3, "Username must be at least 3 characters")
         .max(30, "Username must be less than 30 characters")
-        .regex(/^[a-zA-Z0-9_-]+$/, "Username can only contain letters, numbers, underscores, and hyphens"),
-      full_name: z.string()
-        .trim()
-        .max(100, "Full name must be less than 100 characters"),
-      bio: z.string()
-        .trim()
-        .max(500, "Bio must be less than 500 characters")
-    });
-
+        .regex(/^[a-zA-Z0-9_-]+$/, "Letters, numbers, _ and - only"),
+      full_name: z.string().trim().max(100),
+      bio: z.string().trim().max(500),
+    })
     try {
-      const validated = profileSchema.parse(formData);
-
+      const validated = profileSchema.parse(formData)
       const { data, error } = await supabase
         .from("profiles")
         .update({
           username: validated.username,
           full_name: validated.full_name,
-          bio: validated.bio
+          bio: validated.bio,
         })
-        .eq('user_id', user.id)
+        .eq("user_id", user.id)
         .select()
         .single()
-
       if (error) throw error
-
       setProfile(data)
       setEditing(false)
-      toast({
-        title: "Profile updated",
-        description: "Your profile has been successfully updated.",
-      })
+      toast({ title: "Profile updated" })
     } catch (error: any) {
       if (error instanceof z.ZodError) {
-        toast({
-          title: "Validation Error",
-          description: error.errors[0].message,
-          variant: "destructive",
-        })
+        toast({ title: "Validation Error", description: error.errors[0].message, variant: "destructive" })
       } else {
-        toast({
-          title: "Error",
-          description: error.message,
-          variant: "destructive",
-        })
+        toast({ title: "Error", description: error.message, variant: "destructive" })
       }
     }
   }
 
   const handleAvatarUpdate = (newUrl: string) => {
-    setProfile(prev => prev ? { ...prev, avatar_url: newUrl || null } : null)
+    setProfile((prev) => (prev ? { ...prev, avatar_url: newUrl || null } : null))
   }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    })
+    setFormData({ ...formData, [e.target.name]: e.target.value })
   }
 
   if (loading) {
@@ -192,31 +149,43 @@ function ProfileContent() {
     )
   }
 
+  const totalNodes = roadmapData.length
+  const progressPct = totalNodes ? Math.round((completedCount / totalNodes) * 100) : 0
+  const isSentinel = badges.some((b) => b.badge_slug === SENTINEL_BADGE.slug)
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <div className="space-y-6">
         {/* Profile Header */}
-        <Card className="card-gradient">
+        <Card className={isSentinel ? "card-gradient ring-2 ring-amber-400/40" : "card-gradient"}>
           <CardHeader className="pb-4">
-            <div className="flex items-start justify-between">
+            <div className="flex items-start justify-between flex-wrap gap-4">
               <div className="flex items-center gap-4">
                 {editing ? (
                   <AvatarUpload
                     currentAvatarUrl={profile?.avatar_url}
                     userId={user?.id || ""}
                     onAvatarUpdate={handleAvatarUpdate}
-                    userInitials={profile?.full_name?.split(" ").map(n => n[0]).join("") || "U"}
+                    userInitials={profile?.full_name?.split(" ").map((n) => n[0]).join("") || "U"}
                   />
                 ) : (
                   <Avatar className="w-20 h-20">
                     <AvatarImage src={profile?.avatar_url || ""} />
                     <AvatarFallback className="text-lg">
-                      {profile?.full_name?.split(" ").map(n => n[0]).join("") || "U"}
+                      {profile?.full_name?.split(" ").map((n) => n[0]).join("") || "U"}
                     </AvatarFallback>
                   </Avatar>
                 )}
                 <div>
-                  <h1 className="text-2xl font-bold">{profile?.full_name || "Unnamed User"}</h1>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h1 className="text-2xl font-bold">{profile?.full_name || "Unnamed User"}</h1>
+                    {isSentinel && (
+                      <Badge className="bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30">
+                        <ShieldCheck className="w-3 h-3 mr-1" />
+                        {SENTINEL_BADGE.name}
+                      </Badge>
+                    )}
+                  </div>
                   <p className="text-muted-foreground">@{profile?.username || "no-username"}</p>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
                     <Calendar className="w-4 h-4" />
@@ -227,17 +196,15 @@ function ProfileContent() {
               <Button
                 variant={editing ? "default" : "outline"}
                 size="sm"
-                onClick={() => editing ? handleSave() : setEditing(true)}
+                onClick={() => (editing ? handleSave() : setEditing(true))}
               >
                 {editing ? (
                   <>
-                    <Save className="w-4 h-4 mr-2" />
-                    Save
+                    <Save className="w-4 h-4 mr-2" /> Save
                   </>
                 ) : (
                   <>
-                    <Edit3 className="w-4 h-4 mr-2" />
-                    Edit
+                    <Edit3 className="w-4 h-4 mr-2" /> Edit
                   </>
                 )}
               </Button>
@@ -249,42 +216,21 @@ function ProfileContent() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="full_name">Full Name</Label>
-                    <Input
-                      id="full_name"
-                      name="full_name"
-                      value={formData.full_name}
-                      onChange={handleInputChange}
-                      placeholder="Enter your full name"
-                    />
+                    <Input id="full_name" name="full_name" value={formData.full_name} onChange={handleInputChange} />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="username">Username</Label>
-                    <Input
-                      id="username"
-                      name="username"
-                      value={formData.username}
-                      onChange={handleInputChange}
-                      placeholder="Enter your username"
-                    />
+                    <Input id="username" name="username" value={formData.username} onChange={handleInputChange} />
                   </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="bio">Bio</Label>
-                  <Textarea
-                    id="bio"
-                    name="bio"
-                    value={formData.bio}
-                    onChange={handleInputChange}
-                    placeholder="Tell us about yourself..."
-                    rows={3}
-                  />
+                  <Textarea id="bio" name="bio" value={formData.bio} onChange={handleInputChange} rows={3} />
                 </div>
               </div>
             ) : (
               <div className="space-y-3">
-                <p className="text-foreground">
-                  {profile?.bio || "No bio provided yet."}
-                </p>
+                <p className="text-foreground">{profile?.bio || "No bio provided yet."}</p>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Mail className="w-4 h-4" />
                   {user?.email}
@@ -294,86 +240,68 @@ function ProfileContent() {
           </CardContent>
         </Card>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="card-gradient">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-primary/10 rounded-lg">
-                  <BookOpen className="w-6 h-6 text-primary" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">0</p>
-                  <p className="text-sm text-muted-foreground">Articles Written</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="card-gradient">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-secondary/10 rounded-lg">
-                  <Palette className="w-6 h-6 text-secondary" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">0</p>
-                  <p className="text-sm text-muted-foreground">Designs Created</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="card-gradient">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-success/10 rounded-lg">
-                  <Heart className="w-6 h-6 text-success" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">0</p>
-                  <p className="text-sm text-muted-foreground">Total Upvotes</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Saved Articles */}
+        {/* Roadmap progress */}
         <Card className="card-gradient">
           <CardHeader>
-            <CardTitle>Saved Articles ({savedArticles.length})</CardTitle>
-            <CardDescription>Articles you've bookmarked for later reading</CardDescription>
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-primary/10 rounded-lg">
+                  <Map className="w-6 h-6 text-primary" />
+                </div>
+                <div>
+                  <CardTitle>Roadmap Progress</CardTitle>
+                  <CardDescription>
+                    {completedCount} of {totalNodes} topics completed
+                  </CardDescription>
+                </div>
+              </div>
+              <span className="text-2xl font-bold text-primary">{progressPct}%</span>
+            </div>
           </CardHeader>
           <CardContent>
-            {savedArticles.length === 0 ? (
+            <Progress value={progressPct} className="h-2" />
+            <p className="text-sm text-muted-foreground mt-3">
+              Pass each topic's knowledge check (80%+) to advance. Complete all topics to earn the{" "}
+              <span className="font-medium text-foreground">{SENTINEL_BADGE.name}</span> badge.
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Badges */}
+        <Card className="card-gradient">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Trophy className="w-5 h-5 text-amber-500" />
+              Badges ({badges.length})
+            </CardTitle>
+            <CardDescription>Achievements earned on your journey</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {badges.length === 0 ? (
               <div className="text-center py-8">
-                <BookOpen className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                <p className="text-muted-foreground">No saved articles yet.</p>
-                <p className="text-sm text-muted-foreground mt-2">
-                  Save articles to read them later!
+                <Award className="w-12 h-12 mx-auto text-muted-foreground mb-3" />
+                <p className="text-muted-foreground">No badges yet.</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Complete the full roadmap to unlock the {SENTINEL_BADGE.name}.
                 </p>
               </div>
             ) : (
-              <div className="space-y-4">
-                {savedArticles.slice(0, 5).map((article: any) => (
-                  <Link key={article.id} to={`/articles/${article.id}`}>
-                    <div className="flex items-center gap-3 p-3 rounded-lg border border-border hover:bg-muted/50 transition-colors cursor-pointer">
-                      <div className="flex-1">
-                        <h4 className="font-medium text-sm">{article.title}</h4>
-                        <p className="text-xs text-muted-foreground mt-1">{article.company} • {article.read_time} min read</p>
-                      </div>
-                      <Badge variant="outline" className="text-xs">
-                        {article.difficulty}
-                      </Badge>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {badges.map((b) => (
+                  <div
+                    key={b.id}
+                    className="flex items-start gap-3 p-4 rounded-xl border border-amber-500/30 bg-gradient-to-br from-amber-500/10 to-transparent"
+                  >
+                    <div className="text-3xl">{SENTINEL_BADGE.emoji}</div>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-semibold">{b.badge_name}</div>
+                      <p className="text-xs text-muted-foreground mt-1">{b.badge_description}</p>
+                      <p className="text-[10px] text-muted-foreground mt-2">
+                        Earned {new Date(b.earned_at).toLocaleDateString()}
+                      </p>
                     </div>
-                  </Link>
+                  </div>
                 ))}
-                {savedArticles.length > 5 && (
-                  <p className="text-sm text-muted-foreground text-center pt-2">
-                    And {savedArticles.length - 5} more...
-                  </p>
-                )}
               </div>
             )}
           </CardContent>

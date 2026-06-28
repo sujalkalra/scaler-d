@@ -22,6 +22,7 @@ import { MarkdownRenderer } from "@/components/roadmap/MarkdownRenderer"
 import { MarkdownEditor } from "@/components/editor/MarkdownEditor"
 import { PasswordGate } from "@/components/editor/PasswordGate"
 import { AskSujal } from "@/components/roadmap/AskSujal"
+import { RoadmapQuiz } from "@/components/roadmap/RoadmapQuiz"
 import { cn } from "@/lib/utils"
 import { useAuth } from "@/hooks/useAuth"
 import { supabase } from "@/integrations/supabase/client"
@@ -110,33 +111,22 @@ export default function RoadmapArticle() {
     fetchStatus()
   }, [user, currentNode])
 
-  const handleMarkComplete = async () => {
+  const handleQuizPass = async () => {
     if (!currentNode) return
-    const newStatus = !isComplete
-    setIsComplete(newStatus)
+    setIsComplete(true)
     if (user) {
-      const { error } = await supabase
+      await supabase
         .from("roadmap_progress")
         .upsert({
           user_id: user.id,
           node_id: currentNode.id,
-          completed: newStatus
+          completed: true,
         }, { onConflict: "user_id,node_id" })
-      if (error) {
-        toast.error("Failed to save progress")
-        setIsComplete(!newStatus)
-        return
-      }
     } else {
       const saved = localStorage.getItem("roadmap-progress")
       const completed = saved ? new Set(JSON.parse(saved)) : new Set()
-      if (newStatus) completed.add(currentNode.id)
-      else completed.delete(currentNode.id)
+      completed.add(currentNode.id)
       localStorage.setItem("roadmap-progress", JSON.stringify([...completed]))
-    }
-    toast.success(newStatus ? "Marked as complete!" : "Marked as incomplete")
-    if (newStatus && nextArticle) {
-      setTimeout(() => navigate(`/roadmap/${nextArticle.slug}`), 1000)
     }
   }
 

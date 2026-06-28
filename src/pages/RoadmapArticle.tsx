@@ -336,32 +336,17 @@ export default function RoadmapArticle() {
             </div>
           )}
 
-          {/* Mark Complete CTA */}
-          {!editing && (
-            <div className="mt-12 p-6 rounded-2xl bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border border-primary/20">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <div className={cn("p-2 rounded-full", isComplete ? "bg-green-500/20" : "bg-primary/20")}>
-                    {isComplete ? (
-                      <CheckCircle2 className="w-6 h-6 text-green-600 dark:text-green-400" />
-                    ) : (
-                      <BookOpen className="w-6 h-6 text-primary" />
-                    )}
-                  </div>
-                  <div>
-                    <h3 className="font-semibold">
-                      {isComplete ? "Topic Completed!" : "Finished reading?"}
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                      {isComplete ? "Great job! Move on to the next topic." : "Mark this topic as complete to track your progress."}
-                    </p>
-                  </div>
-                </div>
-                <Button onClick={handleMarkComplete} variant={isComplete ? "outline" : "default"} className="shrink-0 gap-2">
-                  {isComplete ? <>Undo Complete</> : <><CheckCircle2 className="w-4 h-4" />Mark Complete</>}
-                </Button>
-              </div>
-            </div>
+          {/* Knowledge Check Quiz */}
+          {!editing && currentNode && (
+            <RoadmapQuiz
+              nodeId={currentNode.id}
+              slug={slug!}
+              title={article.title}
+              content={article.content}
+              userId={user?.id ?? null}
+              isComplete={isComplete}
+              onPass={handleQuizPass}
+            />
           )}
 
           {/* Navigation */}

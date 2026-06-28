@@ -119,8 +119,6 @@ export function SmartSearch() {
 
   const typeConfig = {
     roadmap: { label: "Roadmap", icon: MapPin, color: "bg-primary/15 text-primary border-primary/20" },
-    company: { label: "Company", icon: Building2, color: "bg-accent/60 text-accent-foreground border-accent" },
-    article: { label: "Featured", icon: Star, color: "bg-warning-light text-warning border-warning/20" },
     skill: { label: "Skill", icon: Wrench, color: "bg-secondary/30 text-secondary-foreground border-secondary/30" },
   }
 

@@ -9,6 +9,8 @@ import Practice from "./pages/Practice";
 import SkillScope from "./pages/SkillScope";
 import Roadmap from "./pages/Roadmap";
 import RoadmapArticle from "./pages/RoadmapArticle";
+import Tools from "./pages/Tools";
+import ToolDetail from "./pages/ToolDetail";
 import Profile from "./pages/Profile";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
@@ -33,6 +35,8 @@ function AppRoutes() {
       <Route path="/skill-scope" element={<SkillScope />} />
       <Route path="/roadmap" element={<Roadmap />} />
       <Route path="/roadmap/:slug" element={<RoadmapArticle />} />
+      <Route path="/tools" element={<Tools />} />
+      <Route path="/tools/:slug" element={<ToolDetail />} />
       <Route path="/profile" element={<Profile />} />
       <Route
         path="/auth"

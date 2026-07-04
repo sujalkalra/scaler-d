@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { X, Palette, Wrench, User, Home, Map } from "lucide-react"
+import { X, Palette, Wrench, User, Home, Map, Boxes } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { Link, useLocation } from "react-router-dom"
@@ -13,6 +13,7 @@ interface MobileNavigationProps {
 const navigationItems = [
   { name: "Home", href: "/", icon: Home },
   { name: "Roadmap", href: "/roadmap", icon: Map },
+  { name: "Tools", href: "/tools", icon: Boxes },
   { name: "Practice", href: "/practice", icon: Palette },
   { name: "Skill Scope", href: "/skill-scope", icon: Wrench },
   { name: "Profile", href: "/profile", icon: User },

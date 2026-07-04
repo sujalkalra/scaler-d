@@ -66,6 +66,9 @@ export function TopNavbar({ onMenuClick }: TopNavbarProps) {
               <Link to="/roadmap">Roadmap</Link>
             </Button>
             <Button variant="ghost" size="sm" asChild>
+              <Link to="/tools">Tools</Link>
+            </Button>
+            <Button variant="ghost" size="sm" asChild>
               <Link to="/practice">Practice</Link>
             </Button>
             <Button variant="ghost" size="sm" asChild>

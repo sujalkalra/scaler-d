@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { Link } from "react-router-dom"
 import { AppLayout } from "@/components/layout/AppLayout"
 import { supabase } from "@/integrations/supabase/client"
 import { useToast } from "@/hooks/use-toast"
-import { Loader2, ArrowRight, Wrench } from "lucide-react"
+import { Loader2, Wrench } from "lucide-react"
 import * as Icons from "lucide-react"
 import { LucideIcon } from "lucide-react"
 
@@ -21,6 +21,18 @@ function getIcon(name: string | null): LucideIcon {
   const Ico = (Icons as any)[name]
   return Ico || Wrench
 }
+
+// Curriculum phases — grouped by natural DevOps progression.
+// Slugs must match the seeded `devops_tools.slug` values.
+const PHASES: { code: string; title: string; slugs: string[] }[] = [
+  { code: "PHASE_01", title: "Systems & Foundations", slugs: ["linux", "git-github", "bash"] },
+  { code: "PHASE_02", title: "Containers & CI/CD", slugs: ["docker", "jenkins"] },
+  { code: "PHASE_03", title: "Cloud & Infrastructure as Code", slugs: ["aws", "terraform", "ansible"] },
+  { code: "PHASE_04", title: "Orchestration", slugs: ["kubernetes", "helm"] },
+  { code: "PHASE_05", title: "Observability", slugs: ["prometheus", "grafana", "elk-stack"] },
+  { code: "PHASE_06", title: "Security & Quality", slugs: ["sonarqube", "trivy", "vault"] },
+  { code: "PHASE_07", title: "Streaming & Service Mesh", slugs: ["kafka", "istio"] },
+]
 
 export default function Tools() {
   const [tools, setTools] = useState<Tool[]>([])
@@ -42,10 +54,37 @@ export default function Tools() {
     })()
   }, [toast])
 
+  const bySlug = useMemo(() => {
+    const m = new Map<string, Tool>()
+    tools.forEach((t) => m.set(t.slug, t))
+    return m
+  }, [tools])
+
+  const orderedPhases = useMemo(() => {
+    // Any tool not covered above becomes a trailing "Extended" phase so nothing is lost.
+    const covered = new Set(PHASES.flatMap((p) => p.slugs))
+    const extras = tools.filter((t) => !covered.has(t.slug)).map((t) => t.slug)
+    const phases = PHASES.map((p) => ({
+      ...p,
+      items: p.slugs.map((s) => bySlug.get(s)).filter(Boolean) as Tool[],
+    })).filter((p) => p.items.length > 0)
+    if (extras.length > 0) {
+      phases.push({
+        code: `PHASE_${String(phases.length + 1).padStart(2, "0")}`,
+        title: "Extended",
+        slugs: extras,
+        items: extras.map((s) => bySlug.get(s)!).filter(Boolean),
+      })
+    }
+    return phases
+  }, [tools, bySlug])
+
+  const total = tools.length
+
   if (loading) {
     return (
       <AppLayout>
-        <div className="flex items-center justify-center py-32 text-muted-foreground">
+        <div className="flex items-center justify-center py-32 text-muted-foreground font-mono">
           <Loader2 className="w-6 h-6 animate-spin mr-2" />
           Loading tools...
         </div>
@@ -55,52 +94,81 @@ export default function Tools() {
 
   return (
     <AppLayout>
-      <div className="container mx-auto px-6 py-10 max-w-6xl">
-        <div className="mb-10">
-          <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-medium mb-4 font-mono">
-            <Wrench className="w-3.5 h-3.5" />
-            DevOps Toolchain
-          </div>
-          <h1 className="text-4xl font-bold mb-3 font-mono">Tools</h1>
-          <p className="text-lg text-muted-foreground max-w-2xl">
-            The sequential DevOps learning path. Follow the chain from Linux fundamentals all the way
-            to service meshes — click any node to open the full learning guide.
+      <div className="container mx-auto px-6 py-12 max-w-5xl font-mono">
+        {/* Header */}
+        <div className="border-l-4 border-primary pl-6 mb-16">
+          <h1 className="text-primary text-3xl font-bold tracking-tighter uppercase mb-2">
+            DevOps_Roadmap.sh
+          </h1>
+          <p className="text-muted-foreground text-sm">
+            Sequential mastery from kernel to service mesh.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {tools.map((tool, idx) => {
-            const Icon = getIcon(tool.icon)
-            const isLast = idx === tools.length - 1
+        {/* Phases */}
+        <div className="relative space-y-24">
+          {orderedPhases.map((phase, pIdx) => {
+            const isLastPhase = pIdx === orderedPhases.length - 1
             return (
-              <div key={tool.id} className="relative">
-                <Link
-                  to={`/tools/${tool.slug}`}
-                  className="group block h-full border border-border rounded-lg p-5 bg-card hover:border-primary hover:shadow-lg transition-all"
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="w-12 h-12 rounded-md bg-primary/10 text-primary flex items-center justify-center shrink-0 group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
-                      <Icon className="w-6 h-6" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-xs font-mono text-muted-foreground">
-                          {String(idx + 1).padStart(2, "0")}
-                        </span>
-                        <h3 className="font-semibold font-mono truncate">{tool.name}</h3>
-                      </div>
-                      {tool.tagline && (
-                        <p className="text-sm text-muted-foreground line-clamp-2">{tool.tagline}</p>
-                      )}
-                    </div>
+              <div key={phase.code} className="relative">
+                {/* vertical rail */}
+                <div
+                  className={`absolute -left-4 top-0 w-px border-l border-dashed border-muted-foreground/40 ${
+                    isLastPhase ? "h-24 bg-gradient-to-b from-border to-transparent" : "h-full bg-border"
+                  }`}
+                />
+                <div className="flex items-center mb-8">
+                  <div className="bg-primary text-primary-foreground px-3 py-1 font-bold text-xs mr-4">
+                    {phase.code}
                   </div>
-                </Link>
-                {!isLast && (
-                  <ArrowRight className="hidden lg:block absolute -right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/40 z-10" />
-                )}
+                  <h2 className="text-foreground text-lg font-medium">{phase.title}</h2>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {phase.items.map((tool) => {
+                    const Icon = getIcon(tool.icon)
+                    const num = `${String(tool.order_index).padStart(2, "0")}/${String(total).padStart(2, "0")}`
+                    return (
+                      <Link
+                        key={tool.id}
+                        to={`/tools/${tool.slug}`}
+                        className="group relative bg-card border border-border p-5 hover:border-primary transition-colors overflow-hidden block"
+                      >
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="text-muted-foreground text-[10px] group-hover:text-primary transition-colors">
+                            {num}
+                          </div>
+                          <Icon className="w-4 h-4 text-muted-foreground/40 group-hover:text-primary transition-colors" />
+                        </div>
+                        <h3 className="text-foreground font-bold mb-1">{tool.name}</h3>
+                        {tool.tagline && (
+                          <p className="text-muted-foreground text-xs leading-relaxed line-clamp-2">
+                            {tool.tagline}
+                          </p>
+                        )}
+                        <div className="absolute bottom-0 right-0 w-8 h-8 flex items-center justify-center opacity-10 group-hover:opacity-100 transition-opacity">
+                          <div className="w-2 h-2 bg-primary" />
+                        </div>
+                      </Link>
+                    )
+                  })}
+                </div>
               </div>
             )
           })}
+        </div>
+
+        {/* Stats Bar */}
+        <div className="flex justify-between items-center pt-8 mt-16 border-t border-border text-[10px] uppercase tracking-widest text-muted-foreground">
+          <div className="flex gap-8">
+            <div>
+              Nodes: <span className="text-primary">{total}</span>
+            </div>
+            <div>
+              Phases: <span className="text-foreground">{orderedPhases.length}</span>
+            </div>
+          </div>
+          <div className="text-primary font-bold">System_Ready</div>
         </div>
       </div>
     </AppLayout>

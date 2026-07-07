@@ -25,13 +25,13 @@ function getIcon(name: string | null): LucideIcon {
 // Curriculum phases — grouped by natural DevOps progression.
 // Slugs must match the seeded `devops_tools.slug` values.
 const PHASES: { code: string; title: string; slugs: string[] }[] = [
-  { code: "PHASE_01", title: "Systems & Foundations", slugs: ["linux", "git-github", "bash"] },
-  { code: "PHASE_02", title: "Containers & CI/CD", slugs: ["docker", "jenkins"] },
-  { code: "PHASE_03", title: "Cloud & Infrastructure as Code", slugs: ["aws", "terraform", "ansible"] },
-  { code: "PHASE_04", title: "Orchestration", slugs: ["kubernetes", "helm"] },
-  { code: "PHASE_05", title: "Observability", slugs: ["prometheus", "grafana", "elk-stack"] },
-  { code: "PHASE_06", title: "Security & Quality", slugs: ["sonarqube", "trivy", "vault"] },
-  { code: "PHASE_07", title: "Streaming & Service Mesh", slugs: ["kafka", "istio"] },
+  { code: "PHASE_01", title: "Systems & Foundations", slugs: ["linux", "git", "github", "bash"] },
+  { code: "PHASE_02", title: "Containers & Orchestration", slugs: ["docker", "kubernetes", "helm"] },
+  { code: "PHASE_03", title: "CI/CD", slugs: ["github-actions", "jenkins"] },
+  { code: "PHASE_04", title: "Cloud & Infrastructure as Code", slugs: ["aws", "terraform", "ansible"] },
+  { code: "PHASE_05", title: "Networking & Edge", slugs: ["nginx"] },
+  { code: "PHASE_06", title: "Observability", slugs: ["prometheus", "grafana", "loki"] },
+  { code: "PHASE_07", title: "Security & Quality", slugs: ["vault", "trivy", "sonarqube"] },
 ]
 
 export default function Tools() {

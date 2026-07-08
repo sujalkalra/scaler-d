@@ -208,10 +208,37 @@ export function RoadmapQuiz({ nodeId, slug, title, content, userId, isComplete, 
       )}
 
       {questions && !started && !submitted && (
-        <div className="text-center py-4">
-          <Button onClick={() => setStarted(true)} size="lg" className="gap-2">
-            Start Knowledge Check
-          </Button>
+        <div className="space-y-4 py-2">
+          {lastAttempt && (
+            <div className={cn(
+              "rounded-lg border p-4 flex items-center justify-between flex-wrap gap-3",
+              lastAttempt.passed
+                ? "border-green-500/30 bg-green-500/10"
+                : "border-amber-500/30 bg-amber-500/10"
+            )}>
+              <div className="flex items-center gap-3">
+                {lastAttempt.passed ? (
+                  <Trophy className="w-5 h-5 text-green-600 dark:text-green-400" />
+                ) : (
+                  <XCircle className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                )}
+                <div>
+                  <div className="text-sm font-semibold">
+                    Last score: {lastAttempt.score}/{lastAttempt.total} ({Math.round((lastAttempt.score / lastAttempt.total) * 100)}%)
+                    {" — "}{lastAttempt.passed ? "Passed" : "Not passed"}
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    Attempted {new Date(lastAttempt.created_at).toLocaleString()}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          <div className="text-center">
+            <Button onClick={() => setStarted(true)} size="lg" className="gap-2">
+              {lastAttempt ? "Retake Knowledge Check" : "Start Knowledge Check"}
+            </Button>
+          </div>
         </div>
       )}
 

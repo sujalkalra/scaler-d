@@ -125,6 +125,7 @@ export function RoadmapQuiz({ nodeId, slug, title, content, userId, isComplete, 
         total: questions.length,
         passed,
       } as any)
+      setLastAttempt({ score: correct, total: questions.length, passed, created_at: new Date().toISOString() })
     }
 
     if (passed) {

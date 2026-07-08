@@ -192,7 +192,10 @@ export default function RoadmapArticle() {
 
   return (
     <AppLayout>
-      <div className="min-h-screen">
+      <div
+        className="min-h-screen transition-[padding] duration-300"
+        style={{ paddingRight: showAskSujal ? `min(100vw, ${sujalWidth}px)` : undefined }}
+      >
         {/* Top Progress Bar */}
         <div className="sticky top-16 z-40 bg-background/95 backdrop-blur border-b border-border">
           <div className="container mx-auto px-4">

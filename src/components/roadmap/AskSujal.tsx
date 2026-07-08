@@ -20,7 +20,7 @@ interface AskSujalProps {
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ask-sujal`
 
-export function AskSujal({ open, onClose, articleTitle, articleExcerpt }: AskSujalProps) {
+export function AskSujal({ open, onClose, articleTitle, articleExcerpt, width = 420, onWidthChange }: AskSujalProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState("")
   const [isLoading, setIsLoading] = useState(false)

@@ -54,18 +54,17 @@ export function RoadmapCard({
     )}>
       {/* Step indicator */}
       <div className="flex flex-col items-center gap-2">
-        <button
-          onClick={onToggleComplete}
+        <div
           className={cn(
             "relative w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300",
-            "hover:scale-110 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2",
-            isCompleted 
-              ? "bg-green-500 text-white shadow-lg shadow-green-500/30" 
-              : isCurrent 
+            isCompleted
+              ? "bg-green-500 text-white shadow-lg shadow-green-500/30"
+              : isCurrent
                 ? "bg-primary text-primary-foreground shadow-lg shadow-primary/30"
-                : "bg-muted border-2 border-border text-muted-foreground hover:border-primary hover:text-primary"
+                : "bg-muted border-2 border-border text-muted-foreground"
           )}
-          aria-label={isCompleted ? "Mark as incomplete" : "Mark as complete"}
+          title={isCompleted ? "Completed — passed the knowledge check" : "Pass the knowledge check to complete"}
+          aria-label={isCompleted ? "Completed" : "Not completed"}
         >
           {isCompleted ? (
             <CheckCircle2 className="w-5 h-5" />
@@ -74,7 +73,7 @@ export function RoadmapCard({
           ) : (
             <span className="text-sm font-bold">{stepNumber}</span>
           )}
-        </button>
+        </div>
         
         {/* Vertical connector line */}
         <div className="flex-1 w-0.5 bg-border rounded-full min-h-[20px]" />

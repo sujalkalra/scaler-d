@@ -14,11 +14,13 @@ interface AskSujalProps {
   onClose: () => void
   articleTitle: string
   articleExcerpt: string
+  width?: number
+  onWidthChange?: (w: number) => void
 }
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ask-sujal`
 
-export function AskSujal({ open, onClose, articleTitle, articleExcerpt }: AskSujalProps) {
+export function AskSujal({ open, onClose, articleTitle, articleExcerpt, width = 420, onWidthChange }: AskSujalProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState("")
   const [isLoading, setIsLoading] = useState(false)
@@ -128,13 +130,46 @@ export function AskSujal({ open, onClose, articleTitle, articleExcerpt }: AskSuj
     }
   }
 
+  const startResize = (e: React.MouseEvent) => {
+    if (!onWidthChange) return
+    e.preventDefault()
+    const startX = e.clientX
+    const startWidth = width
+    const onMove = (ev: MouseEvent) => {
+      const delta = startX - ev.clientX
+      const next = Math.min(Math.max(320, startWidth + delta), Math.min(900, window.innerWidth - 320))
+      onWidthChange(next)
+    }
+    const onUp = () => {
+      window.removeEventListener("mousemove", onMove)
+      window.removeEventListener("mouseup", onUp)
+      document.body.style.cursor = ""
+      document.body.style.userSelect = ""
+    }
+    document.body.style.cursor = "col-resize"
+    document.body.style.userSelect = "none"
+    window.addEventListener("mousemove", onMove)
+    window.addEventListener("mouseup", onUp)
+  }
+
   return (
     <div
+      style={{ width: `min(100vw, ${width}px)` }}
       className={cn(
-        "fixed top-0 right-0 h-full w-full sm:w-[420px] z-50 bg-card border-l border-border shadow-2xl flex flex-col transition-transform duration-300 ease-in-out",
+        "fixed top-0 right-0 h-full z-50 bg-card border-l border-border shadow-2xl flex flex-col transition-transform duration-300 ease-in-out",
         open ? "translate-x-0" : "translate-x-full"
       )}
     >
+      {/* Resize handle */}
+      {onWidthChange && (
+        <div
+          onMouseDown={startResize}
+          className="hidden md:block absolute top-0 left-0 h-full w-1.5 -translate-x-1/2 cursor-col-resize group z-10"
+          aria-label="Resize chat panel"
+        >
+          <div className="h-full w-px mx-auto bg-border group-hover:bg-primary/60 transition-colors" />
+        </div>
+      )}
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-border bg-card">
         <div className="flex items-center gap-3">

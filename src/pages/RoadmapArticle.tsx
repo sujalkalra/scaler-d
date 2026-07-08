@@ -41,6 +41,7 @@ export default function RoadmapArticle() {
   const [saving, setSaving] = useState(false)
   const [dbContent, setDbContent] = useState<string | null>(null)
   const [showAskSujal, setShowAskSujal] = useState(false)
+  const [sujalWidth, setSujalWidth] = useState(440)
 
   // Reset state and scroll to top when slug changes
   useEffect(() => {
@@ -191,7 +192,10 @@ export default function RoadmapArticle() {
 
   return (
     <AppLayout>
-      <div className="min-h-screen">
+      <div
+        className="min-h-screen transition-[padding] duration-300"
+        style={{ paddingRight: showAskSujal ? `min(100vw, ${sujalWidth}px)` : undefined }}
+      >
         {/* Top Progress Bar */}
         <div className="sticky top-16 z-40 bg-background/95 backdrop-blur border-b border-border">
           <div className="container mx-auto px-4">
@@ -388,10 +392,9 @@ export default function RoadmapArticle() {
           onClose={() => setShowAskSujal(false)}
           articleTitle={article.title}
           articleExcerpt={article.excerpt}
+          width={sujalWidth}
+          onWidthChange={setSujalWidth}
         />
-        {showAskSujal && (
-          <div className="fixed inset-0 bg-background/60 z-40" onClick={() => setShowAskSujal(false)} />
-        )}
       </div>
     </AppLayout>
   )

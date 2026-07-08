@@ -35,6 +35,7 @@ export function RoadmapQuiz({ nodeId, slug, title, content, userId, isComplete, 
   const [answers, setAnswers] = useState<Record<number, number>>({})
   const [submitted, setSubmitted] = useState<{ score: number; passed: boolean } | null>(null)
   const [started, setStarted] = useState(false)
+  const [lastAttempt, setLastAttempt] = useState<{ score: number; total: number; passed: boolean; created_at: string } | null>(null)
 
   // Try to load existing quiz from DB
   useEffect(() => {
@@ -57,6 +58,26 @@ export function RoadmapQuiz({ nodeId, slug, title, content, userId, isComplete, 
     load()
     return () => { cancelled = true }
   }, [nodeId])
+
+  // Load user's most recent attempt for this node
+  useEffect(() => {
+    let cancelled = false
+    if (!userId) { setLastAttempt(null); return }
+    const loadAttempt = async () => {
+      const { data } = await supabase
+        .from("quiz_attempts" as any)
+        .select("score, total, passed, created_at")
+        .eq("user_id", userId)
+        .eq("node_id", nodeId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle()
+      if (cancelled) return
+      setLastAttempt((data as any) || null)
+    }
+    loadAttempt()
+    return () => { cancelled = true }
+  }, [nodeId, userId])
 
   // Reset on nav
   useEffect(() => {

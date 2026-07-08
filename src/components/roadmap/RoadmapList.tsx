@@ -222,7 +222,7 @@ export function RoadmapList() {
             <span className="text-muted-foreground">Upcoming topic</span>
           </div>
           <div className="flex items-center gap-3">
-            <span className="text-muted-foreground">Click the circle to mark complete</span>
+            <span className="text-muted-foreground">Pass the knowledge check to complete a topic</span>
           </div>
         </div>
       </div>

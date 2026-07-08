@@ -14,6 +14,8 @@ interface AskSujalProps {
   onClose: () => void
   articleTitle: string
   articleExcerpt: string
+  width?: number
+  onWidthChange?: (w: number) => void
 }
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ask-sujal`
